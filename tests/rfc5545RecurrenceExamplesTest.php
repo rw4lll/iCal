@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace Tests;
 
@@ -68,6 +70,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 123, Test 1 :: Daily, 10 Occurrences
+
+    /**
+     * @return void
+     */
     public function test_page123_test1()
     {
         $checks = [
@@ -87,6 +93,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 123, Test 2 :: Daily, until December 24th
+
+    /**
+     * @return void
+     */
     public function test_page123_test2()
     {
         $checks = [
@@ -106,6 +116,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 123, Test 3 :: Daily, until December 24th, with trailing semicolon
+
+    /**
+     * @return void
+     */
     public function test_page123_test3()
     {
         $checks = [
@@ -127,6 +141,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 124, Test 1 :: Daily, every other day, Forever
     //
     // UNTIL rule does not exist in original example
+    /**
+     * @return void
+     */
     public function test_page124_test1()
     {
         $checks = [
@@ -146,6 +163,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 124, Test 2 :: Daily, 10-day intervals, 5 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page124_test2()
     {
         $checks = [
@@ -165,6 +186,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 124, Test 3a :: Every January day, for 3 years (Variant A)
+
+    /**
+     * @return void
+     */
     public function test_page124_test3a()
     {
         $checks = [
@@ -206,6 +231,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
 */
 
     // Page 124, Test 4 :: Weekly, 10 occurrences
+    /**
+     * @return void
+     */
     public function test_page124_test4()
     {
         $checks = [
@@ -225,6 +253,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 125, Test 1 :: Weekly, until December 24th
+
+    /**
+     * @return void
+     */
     public function test_page125_test1()
     {
         $checks = [
@@ -247,6 +279,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 125, Test 2 :: Every other week, forever
     //
     // UNTIL rule does not exist in original example
+    /**
+     * @return void
+     */
     public function test_page125_test2()
     {
         $checks = [
@@ -270,6 +305,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 125, Test 3a :: Tuesday & Thursday every week, for five weeks (Variant A)
+
+    /**
+     * @return void
+     */
     public function test_page125_test3a()
     {
         $checks = [
@@ -290,6 +329,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 125, Test 3b :: Tuesday & Thursday every week, for five weeks (Variant B)
+
+    /**
+     * @return void
+     */
     public function test_page125_test3b()
     {
         $checks = [
@@ -310,6 +353,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 125, Test 4 :: Monday, Wednesday & Friday of every other week until December 24th
+
+    /**
+     * @return void
+     */
     public function test_page125_test4()
     {
         $checks = [
@@ -330,6 +377,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 126, Test 1 :: Tuesday & Thursday, every other week, for 8 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page126_test1()
     {
         $checks = [
@@ -349,6 +400,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 126, Test 2 :: First Friday of the Month, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page126_test2()
     {
         $checks = [
@@ -368,6 +423,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 126, Test 3 :: First Friday of the Month, until 24th December
+
+    /**
+     * @return void
+     */
     public function test_page126_test3()
     {
         $checks = [
@@ -387,6 +446,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 126, Test 4 :: First and last Sunday, every other Month, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page126_test4()
     {
         $checks = [
@@ -409,6 +472,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 126, Test 5 :: Second-to-last Monday of the Month, for six months
+
+    /**
+     * @return void
+     */
     public function test_page126_test5()
     {
         $checks = [
@@ -430,6 +497,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 127, Test 1 :: Third-to-last day of the month, forever
     //
     // UNTIL rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page127_test1()
     {
         $checks = [
@@ -452,6 +522,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 127, Test 2 :: 2nd and 15th of each Month, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page127_test2()
     {
         $checks = [
@@ -472,6 +546,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 127, Test 3 :: First and last day of the month, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page127_test3()
     {
         $checks = [
@@ -493,6 +571,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 127, Test 4 :: 10th through 15th, every 18 months, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page127_test4()
     {
         $checks = [
@@ -515,6 +597,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 127, Test 5 :: Every Tuesday, every other Month, forever
     //
     // UNTIL rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page127_test5()
     {
         $checks = [
@@ -534,6 +619,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 128, Test 1 :: June & July of each Year, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page128_test1()
     {
         $checks = [
@@ -553,6 +642,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 128, Test 2 :: January, February, & March, every other Year, for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page128_test2()
     {
         $checks = [
@@ -572,6 +665,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 128, Test 3 :: Every third Year on the 1st, 100th, & 200th day for 10 occurrences
+
+    /**
+     * @return void
+     */
     public function test_page128_test3()
     {
         $checks = [
@@ -593,6 +690,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 128, Test 4 :: 20th Monday of a Year, forever
     //
     // COUNT rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page128_test4()
     {
         $checks = [
@@ -614,6 +714,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 129, Test 1 :: Monday of Week 20, where the default start of the week is Monday, forever
     //
     // COUNT rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page129_test1()
     {
         $checks = [
@@ -635,6 +738,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 129, Test 2 :: Every Thursday in March, forever
     //
     // UNTIL rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page129_test2()
     {
         $checks = [
@@ -656,6 +762,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 129, Test 3 :: Every Thursday in June, July, & August, forever
     //
     // UNTIL rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page129_test3()
     {
         $checks = [
@@ -704,6 +813,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 130, Test 1 :: The first Saturday that follows the first Sunday of the month, forever:
     //
     // COUNT rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page130_test1()
     {
         $checks = [
@@ -725,6 +837,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 130, Test 2 :: The first Tuesday after a Monday in November, every 4 Years (U.S. Presidential Election Day), forever
     //
     // COUNT rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page130_test2()
     {
         $checks = [
@@ -744,6 +859,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 130, Test 3 :: Third instance of either a Tuesday, Wednesday, or Thursday of a Month, for 3 months.
+
+    /**
+     * @return void
+     */
     public function test_page130_test3()
     {
         $checks = [
@@ -765,6 +884,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     // Page 130, Test 4 :: Second-to-last weekday of the month, indefinitely
     //
     // UNTIL rule does not exist in original example.
+    /**
+     * @return void
+     */
     public function test_page130_test4()
     {
         $checks = [
@@ -911,6 +1033,9 @@ class rfc5545RecurrenceExamplesTest extends TestCase
 */
 
     // Page 131, Test 5a :: Changing the passed WKST rule, before...
+    /**
+     * @return void
+     */
     public function test_page131_test5a()
     {
         $checks = [
@@ -931,6 +1056,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 131, Test 5b :: ...and after
+
+    /**
+     * @return void
+     */
     public function test_page131_test5b()
     {
         $checks = [
@@ -951,6 +1080,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
     }
 
     // Page 132, Test 1 :: Automatically ignoring an invalid date (30 February)
+
+    /**
+     * @return void
+     */
     public function test_page132_test1()
     {
         $checks = [
@@ -971,6 +1104,13 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         );
     }
 
+    /**
+     * @param $defaultTimezone
+     * @param $veventParts
+     * @param $count
+     * @param $checks
+     * @return void
+     */
     public function assertVEVENT($defaultTimezone, $veventParts, $count, $checks)
     {
         $options = $this->getOptions($defaultTimezone);
@@ -993,6 +1133,13 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         }
     }
 
+    /**
+     * @param $event
+     * @param $expectedDateString
+     * @param $message
+     * @param $timeZone
+     * @return void
+     */
     public function assertEvent($event, $expectedDateString, $message, $timeZone = null)
     {
         if (!is_null($timeZone)) {
@@ -1005,9 +1152,13 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         $this->assertEquals($expectedDateString, $event->dtstart, $message . 'dtstart mismatch (timestamp is okay)');
     }
 
-    public function getOptions($defaultTimezone)
+    /**
+     * @param $defaultTimezone
+     * @return array
+     */
+    public function getOptions($defaultTimezone): array
     {
-        $options = [
+        return [
             'defaultSpan'                 => 2,                // Default value: 2
             'defaultTimeZone'             => $defaultTimezone, // Default value: UTC
             'defaultWeekStart'            => 'MO',             // Default value
@@ -1017,11 +1168,13 @@ class rfc5545RecurrenceExamplesTest extends TestCase
             'httpUserAgent'               => null,             // Default value
             'skipRecurrence'              => false,            // Default value
         ];
-
-        return $options;
     }
 
-    public function formatIcalEvent($veventParts)
+    /**
+     * @param $veventParts
+     * @return array
+     */
+    public function formatIcalEvent($veventParts): array
     {
         return array_merge(
             [
@@ -1038,7 +1191,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         );
     }
 
-    public function getIcalHeader()
+    /**
+     * @return string[]
+     */
+    public function getIcalHeader(): array
     {
         return [
             'BEGIN:VCALENDAR',
@@ -1050,7 +1206,10 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         ];
     }
 
-    public function getIcalFooter()
+    /**
+     * @return string[]
+     */
+    public function getIcalFooter(): array
     {
         return ['END:VCALENDAR'];
     }

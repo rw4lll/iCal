@@ -1,14 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use Rw4lll\ICal\ICal;
 
+/**
+ *
+ */
 class KeyValueTest extends TestCase
 {
-    public function testBoundaryCharactersInsideQuotes()
+    /**
+     * @return void
+     */
+    public function testBoundaryCharactersInsideQuotes(): void
     {
         $checks = [
             0 => 'ATTENDEE',
@@ -27,7 +35,10 @@ class KeyValueTest extends TestCase
         );
     }
 
-    public function testUtf8Characters()
+    /**
+     * @return void
+     */
+    public function testUtf8Characters(): void
     {
         $checks = [
             0 => 'ATTENDEE',
@@ -56,7 +67,10 @@ class KeyValueTest extends TestCase
         );
     }
 
-    public function testParametersOfKeysWithMultipleValues()
+    /**
+     * @return void
+     */
+    public function testParametersOfKeysWithMultipleValues(): void
     {
         $checks = [
             0 => 'ATTENDEE',
@@ -77,7 +91,12 @@ class KeyValueTest extends TestCase
         );
     }
 
-    private function assertLines($lines, array $checks)
+    /**
+     * @param $lines
+     * @param array $checks
+     * @return void
+     */
+    private function assertLines($lines, array $checks): void
     {
         $ical = new ICal();
 

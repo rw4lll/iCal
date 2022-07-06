@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use Rw4lll\ICal\ICal;
 
+/**
+ *
+ */
 class SingleEventsTest extends TestCase
 {
     private $originalTimeZone = null;
@@ -26,6 +31,9 @@ class SingleEventsTest extends TestCase
         date_default_timezone_set($this->originalTimeZone);
     }
 
+    /**
+     * @return void
+     */
     public function testFullDayTimeZoneBerlin()
     {
         $checks = [
@@ -40,6 +48,9 @@ class SingleEventsTest extends TestCase
         );
     }
 
+    /**
+     * @return void
+     */
     public function testSeveralFullDaysTimeZoneBerlin()
     {
         $checks = [
@@ -54,6 +65,9 @@ class SingleEventsTest extends TestCase
         );
     }
 
+    /**
+     * @return void
+     */
     public function testEventTimeZoneUTC()
     {
         $checks = [
@@ -68,6 +82,9 @@ class SingleEventsTest extends TestCase
         );
     }
 
+    /**
+     * @return void
+     */
     public function testEventTimeZoneBerlin()
     {
         $checks = [
@@ -82,6 +99,14 @@ class SingleEventsTest extends TestCase
         );
     }
 
+    /**
+     * @param $defaultTimezone
+     * @param $dtstart
+     * @param $dtend
+     * @param $count
+     * @param $checks
+     * @return void
+     */
     public function assertVEVENT($defaultTimezone, $dtstart, $dtend, $count, $checks)
     {
         $options = $this->getOptions($defaultTimezone);
@@ -113,9 +138,13 @@ class SingleEventsTest extends TestCase
         }
     }
 
-    public function getOptions($defaultTimezone)
+    /**
+     * @param $defaultTimezone
+     * @return array
+     */
+    public function getOptions($defaultTimezone): array
     {
-        $options = [
+        return [
             'defaultSpan'                 => 2,                // Default value
             'defaultTimeZone'             => $defaultTimezone, // Default value: UTC
             'defaultWeekStart'            => 'MO',             // Default value
@@ -125,11 +154,12 @@ class SingleEventsTest extends TestCase
             'httpUserAgent'               => null,             // Default value
             'skipRecurrence'              => false,            // Default value
         ];
-
-        return $options;
     }
 
-    public function getIcalHeader()
+    /**
+     * @return string[]
+     */
+    public function getIcalHeader(): array
     {
         return [
             'BEGIN:VCALENDAR',
@@ -141,7 +171,12 @@ class SingleEventsTest extends TestCase
         ];
     }
 
-    public function formatIcalEvent($dtstart, $dtend)
+    /**
+     * @param $dtstart
+     * @param $dtend
+     * @return array
+     */
+    public function formatIcalEvent($dtstart, $dtend): array
     {
         return [
             'BEGIN:VEVENT',
@@ -157,7 +192,10 @@ class SingleEventsTest extends TestCase
         ];
     }
 
-    public function getIcalTimezones()
+    /**
+     * @return string[]
+     */
+    public function getIcalTimezones(): array
     {
         return [
             'BEGIN:VTIMEZONE',
@@ -456,11 +494,21 @@ class SingleEventsTest extends TestCase
         ];
     }
 
-    public function getIcalFooter()
+    /**
+     * @return string[]
+     */
+    public function getIcalFooter(): array
     {
         return ['END:VCALENDAR'];
     }
 
+    /**
+     * @param $event
+     * @param $expectedDateString
+     * @param $message
+     * @param $timezone
+     * @return void
+     */
     public function assertEvent($event, $expectedDateString, $message, $timezone = null)
     {
         if ($timezone !== null) {
@@ -481,6 +529,13 @@ class SingleEventsTest extends TestCase
         );
     }
 
+    /**
+     * @param $defaultTimezone
+     * @param $file
+     * @param $count
+     * @param $checks
+     * @return void
+     */
     public function assertEventFile($defaultTimezone, $file, $count, $checks)
     {
         $options = $this->getOptions($defaultTimezone);
