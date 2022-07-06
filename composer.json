@@ -1,0 +1,48 @@
+{
+    "name": "rw4lll/ical",
+    "description": "ICalendar parser, based on u01jmg3/ics-parser",
+    "homepage": "https://github.com/rw4lll/iCal",
+    "keywords": [
+        "ical",
+        "ical-parser",
+        "icalendar",
+        "ics",
+        "ics-parser"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sergei Shitikov",
+            "role": "Developer/Owner"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "symfony/string": "^5.4",
+        "nesbot/carbon": "^2.59"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "~3.6.0",
+        "phpunit/phpunit": "^9",
+        "rector/rector": "^0.13.7",
+        "vimeo/psalm": "^4.24"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rw4lll\\ICal\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Rw4lll\\ICal\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit --colors=always"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
