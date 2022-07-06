@@ -13,8 +13,6 @@ use const PHP_VERSION_ID;
 
 class ICal
 {
-    // phpcs:disable Generic.Arrays.DisallowLongArraySyntax
-
     public const DATE_TIME_FORMAT = 'Ymd\THis';
     public const DATE_TIME_FORMAT_PRETTY = 'F Y H:i:s';
     public const ICAL_DATE_TIME_TEMPLATE = 'TZID=%s:';

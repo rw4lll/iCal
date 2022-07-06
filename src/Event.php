@@ -4,8 +4,6 @@ namespace Rw4lll\ICal;
 
 class Event
 {
-    // phpcs:disable Generic.Arrays.DisallowLongArraySyntax
-
     public const HTML_TEMPLATE = '<p>%s: %s</p>';
 
     /**

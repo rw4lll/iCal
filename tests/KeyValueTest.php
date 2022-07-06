@@ -1,15 +1,13 @@
 <?php
 
+
+namespace Tests;
+
 use PHPUnit\Framework\TestCase;
 use Rw4lll\ICal\ICal;
 
 class KeyValueTest extends TestCase
 {
-    // phpcs:disable Generic.Arrays.DisallowLongArraySyntax
-    // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    // phpcs:disable Squiz.Commenting.FunctionComment
-    // phpcs:disable Squiz.Commenting.VariableComment
-
     public function testBoundaryCharactersInsideQuotes()
     {
         $checks = [

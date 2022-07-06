@@ -1,15 +1,13 @@
 <?php
 
+
+namespace Tests;
+
 use PHPUnit\Framework\TestCase;
 use Rw4lll\ICal\ICal;
 
 class SingleEventsTest extends TestCase
 {
-    // phpcs:disable Generic.Arrays.DisallowLongArraySyntax
-    // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    // phpcs:disable Squiz.Commenting.FunctionComment
-    // phpcs:disable Squiz.Commenting.VariableComment
-
     private $originalTimeZone = null;
 
     /**
@@ -30,9 +28,9 @@ class SingleEventsTest extends TestCase
 
     public function testFullDayTimeZoneBerlin()
     {
-        $checks = array(
-            array('index' => 0, 'dateString' => '20000301', 'message' => '1st event, CET: '),
-        );
+        $checks = [
+            ['index' => 0, 'dateString' => '20000301', 'message' => '1st event, CET: '],
+        ];
         $this->assertVEVENT(
             'Europe/Berlin',
             'DTSTART;VALUE=DATE:20000301',
@@ -44,9 +42,9 @@ class SingleEventsTest extends TestCase
 
     public function testSeveralFullDaysTimeZoneBerlin()
     {
-        $checks = array(
-            array('index' => 0, 'dateString' => '20000301', 'message' => '1st event, CET: '),
-        );
+        $checks = [
+            ['index' => 0, 'dateString' => '20000301', 'message' => '1st event, CET: '],
+        ];
         $this->assertVEVENT(
             'Europe/Berlin',
             'DTSTART;VALUE=DATE:20000301',
@@ -58,9 +56,9 @@ class SingleEventsTest extends TestCase
 
     public function testEventTimeZoneUTC()
     {
-        $checks = array(
-            array('index' => 0, 'dateString' => '20180626T070000Z', 'message' => '1st event, UTC: '),
-        );
+        $checks = [
+            ['index' => 0, 'dateString' => '20180626T070000Z', 'message' => '1st event, UTC: '],
+        ];
         $this->assertVEVENT(
             'Europe/Berlin',
             'DTSTART:20180626T070000Z',
@@ -72,9 +70,9 @@ class SingleEventsTest extends TestCase
 
     public function testEventTimeZoneBerlin()
     {
-        $checks = array(
-            array('index' => 0, 'dateString' => '20180626T070000', 'message' => '1st event, CEST: '),
-        );
+        $checks = [
+            ['index' => 0, 'dateString' => '20180626T070000', 'message' => '1st event, CEST: '],
+        ];
         $this->assertVEVENT(
             'Europe/Berlin',
             'DTSTART:20180626T070000',
@@ -117,7 +115,7 @@ class SingleEventsTest extends TestCase
 
     public function getOptions($defaultTimezone)
     {
-        $options = array(
+        $options = [
             'defaultSpan'                 => 2,                // Default value
             'defaultTimeZone'             => $defaultTimezone, // Default value: UTC
             'defaultWeekStart'            => 'MO',             // Default value
@@ -126,26 +124,26 @@ class SingleEventsTest extends TestCase
             'filterDaysBefore'            => null,             // Default value
             'httpUserAgent'               => null,             // Default value
             'skipRecurrence'              => false,            // Default value
-        );
+        ];
 
         return $options;
     }
 
     public function getIcalHeader()
     {
-        return array(
+        return [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Google Inc//Google Calendar 70.9054//EN',
             'X-WR-CALNAME:Private',
             'X-APPLE-CALENDAR-COLOR:#FF2968',
             'X-WR-CALDESC:',
-        );
+        ];
     }
 
     public function formatIcalEvent($dtstart, $dtend)
     {
-        return array(
+        return [
             'BEGIN:VEVENT',
             'CREATED:20090213T195947Z',
             'UID:M2CD-1-1-5FB000FB-BBE4-4F3F-9E7E-217F1FF97209',
@@ -156,12 +154,12 @@ class SingleEventsTest extends TestCase
             'DTSTAMP:20170630T105724Z',
             'SEQUENCE:0',
             'END:VEVENT',
-        );
+        ];
     }
 
     public function getIcalTimezones()
     {
-        return array(
+        return [
             'BEGIN:VTIMEZONE',
             'TZID:Europe/Berlin',
             'X-LIC-LOCATION:Europe/Berlin',
@@ -455,12 +453,12 @@ class SingleEventsTest extends TestCase
             'TZNAME:EDT',
             'END:DAYLIGHT',
             'END:VTIMEZONE',
-        );
+        ];
     }
 
     public function getIcalFooter()
     {
-        return array('END:VCALENDAR');
+        return ['END:VCALENDAR'];
     }
 
     public function assertEvent($event, $expectedDateString, $message, $timezone = null)
