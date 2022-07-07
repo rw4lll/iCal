@@ -160,9 +160,10 @@ class Event
      * Returns Event data excluding anything blank
      * within an HTML template
      *
+     * @param array $customFields
      * @return array
      */
-    public function toArray(): array
+    public function toArray(array $customFields = []): array
     {
         $result = [
             'SUMMARY'       => $this->summary,
@@ -183,6 +184,12 @@ class Event
             'ORGANISER'     => $this->organizer,
             'ATTENDEE(S)'   => $this->attendee,
         ];
+
+        if(!empty($customFields)) {
+            foreach ($customFields as $key => $value) {
+                $result[$key] = $this->{$value};
+            }
+        }
 
         // Remove any blank values
         return array_filter($result);
