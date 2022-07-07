@@ -2348,9 +2348,7 @@ class ICal
      */
     public function freeBusyEvents(): array
     {
-        $array = $this->cal;
-
-        return $array['VFREEBUSY'] ?? [];
+        return $this->cal['VFREEBUSY'] ?? [];
     }
 
     /**
@@ -2361,30 +2359,25 @@ class ICal
      */
     public function hasEvents(): bool
     {
-        return !empty($this->events());
+        return !empty($this->getEvents());
     }
 
     /**
-     * Returns an array of Events.
+     * Returns generator of Events.
      * Every event is a class with the event
      * details being properties within it.
      *
-     * @return array
+     * @return \Generator
      */
-    public function events(): array
+    public function getEvents(): \Generator
     {
-        $array = $this->cal;
-        $array = $array['VEVENT'] ?? [];
+        $events = $this->cal['VEVENT'] ?? [];
 
-        $events = [];
-
-        if (!empty($array)) {
-            foreach ($array as $event) {
-                $events[] = new Event($event);
+        if (!empty($events)) {
+            foreach ($events as $event) {
+                yield new Event($event);
             }
         }
-
-        return $events;
     }
 
     /**
@@ -2431,7 +2424,7 @@ class ICal
     public function eventsFromRange(?string $rangeStart = null, ?string $rangeEnd = null): array
     {
         // Sort events before processing range
-        $events = $this->sortEventsWithOrder($this->events());
+        $events = $this->sortEventsWithOrder($this->getEvents());
 
         if (empty($events)) {
             return [];

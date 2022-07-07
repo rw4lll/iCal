@@ -537,7 +537,7 @@ class RecurrencesTest extends TestCase
 
         $ical = ICal::initFromString($testIcal, $options);
 
-        $events = $ical->events();
+        $events = iterator_to_array($ical->getEvents());
 
         $this->assertCount($count, $events);
 
@@ -559,7 +559,7 @@ class RecurrencesTest extends TestCase
 
         $ical = ICal::initFromString($data, $options);
 
-        $events = $ical->events();
+        $events = iterator_to_array($ical->getEvents());
 
         $this->assertCount($count, $events);
 
