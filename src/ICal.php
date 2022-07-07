@@ -6,8 +6,9 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Psr\Log\LoggerInterface;
 
-use function Symfony\Component\String\u;
+use UnexpectedValueException;
 
 use const PHP_VERSION_ID;
 
@@ -413,17 +414,19 @@ class ICal
         'YEARLY' => 'year',
     ];
     /**
+     * @var LoggerInterface|null $logger
+     */
+    protected ?LoggerInterface $logger;
+    /**
      * If `$filterDaysBefore` or `$filterDaysAfter` are set then the events are filtered according to the window defined
      * by this field and `$windowMaxTimestamp`.
      */
     private int $windowMinTimestamp;
-
     /**
      * If `$filterDaysBefore` or `$filterDaysAfter` are set then the events are filtered according to the window defined
      * by this field and `$windowMinTimestamp`.
      */
     private int $windowMaxTimestamp;
-
     /**
      * `true` if either `$filterDaysBefore` or `$filterDaysAfter` are set.
      */
@@ -436,11 +439,17 @@ class ICal
      * @param array $options
      * @throws Exception
      */
-    public function __construct(array $lines = [], array $options = [])
+    public function __construct(array $lines = [], array $options = [], ?LoggerInterface $logger = null)
     {
+        /**
+         * TODO: check and remove if redundant, or try to solve without ini_set()
+         */
         if (PHP_VERSION_ID < 80100) {
             ini_set('auto_detect_line_endings', '1');
         }
+
+        $this->logger = $logger;
+
 
         foreach ($options as $option => $value) {
             if (in_array($option, self::$configurableOptions)) {
@@ -462,7 +471,7 @@ class ICal
 
         $this->shouldFilterByWindow = !is_null($this->filterDaysBefore) || !is_null($this->filterDaysAfter);
 
-        if(!empty($lines)) {
+        if (!empty($lines)) {
             $this->initFromLines($lines);
         }
     }
@@ -541,7 +550,7 @@ class ICal
      * @param array $lines
      * @return void
      */
-    protected function initFromLines(array $lines):ICal
+    protected function initFromLines(array $lines): ICal
     {
         $lines = $this->unfold($lines);
 
@@ -976,7 +985,6 @@ class ICal
 
         try {
             new DateTime($value);
-
             return true;
         } catch (Exception $exception) {
             return false;
@@ -1058,7 +1066,10 @@ class ICal
                             $array = array_filter(explode(',', $value));
                             $this->cal[$key1][$key2]["{$keyword}_array"][] = $array;
                         } else {
-                            $value = explode(',', implode(',', $this->cal[$key1][$key2]["{$keyword}_array"][1]) . trim($value));
+                            $value = explode(
+                                ',',
+                                implode(',', $this->cal[$key1][$key2]["{$keyword}_array"][1]) . trim($value)
+                            );
                             $this->cal[$key1][$key2]["{$keyword}_array"][1] = $value;
                         }
                     } else {
@@ -1132,7 +1143,7 @@ class ICal
 
                         if (isset($anEvent["{$type}_array"][0]['TZID'])) {
                             $timeZone = $this->escapeParamText($anEvent["{$type}_array"][0]['TZID']);
-                            $date     = sprintf(self::ICAL_DATE_TIME_TEMPLATE, $timeZone) . $date;
+                            $date = sprintf(self::ICAL_DATE_TIME_TEMPLATE, $timeZone) . $date;
                         }
 
                         $anEvent["{$type}_array"][2] = $this->iCalDateToUnixTimestamp($date);
@@ -1219,7 +1230,7 @@ class ICal
      *
      * @param string $icalDate
      * @return DateTime
-     * @throws Exception
+     * @throws UnexpectedValueException
      */
     public function iCalDateToDateTime(string $icalDate): DateTime
     {
@@ -1243,7 +1254,7 @@ class ICal
         preg_match($pattern, $icalDate, $date);
 
         if (empty($date)) {
-            throw new Exception('Invalid iCal date format.');
+            throw new \UnexpectedValueException('Invalid iCal date format.');
         }
 
         // A Unix timestamp usually cannot represent a date prior to 1 Jan 1970.
@@ -1305,6 +1316,7 @@ class ICal
      * Processes recurrence rules
      *
      * @return void
+     * @throws UnexpectedValueException
      */
     protected function processRecurrences(): void
     {
@@ -1355,14 +1367,20 @@ class ICal
                 };
                 if (!in_array($frequency, ['MONTHLY', 'YEARLY'])) {
                     if (!array_reduce($rrules['BYDAY'], $checkByDays, true)) {
-                        error_log("ICal::ProcessRecurrences: A {$frequency} RRULE may not contain BYDAY values with numeric prefixes");
-
+                        if (!is_null($this->logger)) {
+                            $this->logger->error(
+                                "ICal::ProcessRecurrences: A {$frequency} RRULE may not contain BYDAY values with numeric prefixes"
+                            );
+                        }
                         continue;
                     }
                 } elseif ($frequency === 'YEARLY' && !empty($rrules['BYWEEKNO'])) {
                     if (!array_reduce($rrules['BYDAY'], $checkByDays, true)) {
-                        error_log('ICal::ProcessRecurrences: A YEARLY RRULE with a BYWEEKNO part may not contain BYDAY values with numeric prefixes');
-
+                        if (!is_null($this->logger)) {
+                            $this->logger->error(
+                                'ICal::ProcessRecurrences: A YEARLY RRULE with a BYWEEKNO part may not contain BYDAY values with numeric prefixes'
+                            );
+                        }
                         continue;
                     }
                 }
@@ -1373,7 +1391,7 @@ class ICal
 
             // Throw an error if this isn't an integer.
             if (!is_int($this->defaultSpan)) {
-                trigger_error('ICal::defaultSpan: User defined value is not an integer', E_USER_NOTICE);
+                throw new UnexpectedValueException('ICal::defaultSpan: User defined value is not an integer');
             }
 
             // Compute EXDATEs
@@ -2294,11 +2312,11 @@ class ICal
      * @param array $options
      * @return ICal
      */
-    public static function initFromString(string $string, array $options = []): ICal
+    public static function initFromString(string $string, array $options = [], ?LoggerInterface $logger = null): ICal
     {
         $string = str_replace(["\r\n", "\n\r", "\r"], "\n", $string);
         $lines = explode("\n", $string);
-        return (new static([], $options))->initFromLines($lines);
+        return (new static([], $options, $logger))->initFromLines($lines);
     }
 
     /**
@@ -2425,7 +2443,9 @@ class ICal
             try {
                 $rangeStart = new DateTime($rangeStart, new DateTimeZone($this->defaultTimeZone));
             } catch (Exception $exception) {
-                error_log("ICal::eventsFromRange: Invalid date passed ({$rangeStart})");
+                if (!is_null($this->logger)) {
+                    $this->logger->error("ICal::eventsFromRange: Invalid date passed ({$rangeStart})");
+                }
                 $rangeStart = false;
             }
         } else {
@@ -2436,7 +2456,9 @@ class ICal
             try {
                 $rangeEnd = new DateTime($rangeEnd, new DateTimeZone($this->defaultTimeZone));
             } catch (Exception $exception) {
-                error_log("ICal::eventsFromRange: Invalid date passed ({$rangeEnd})");
+                if (!is_null($this->logger)) {
+                    $this->logger->error("ICal::eventsFromRange: Invalid date passed ({$rangeEnd})");
+                }
                 $rangeEnd = false;
             }
         } else {
@@ -2496,5 +2518,14 @@ class ICal
         array_multisort($timestamp, $sortOrder, $extendedEvents);
 
         return $extendedEvents;
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
     }
 }
