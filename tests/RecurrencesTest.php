@@ -107,9 +107,9 @@ class RecurrencesTest extends TestCase
             ['index' => 1, 'dateString' => '20180801T000000', 'message' => '2nd event, CEST: '],
             ['index' => 2, 'dateString' => '20180901T000000', 'message' => '3rd event, CEST: '],
         ];
-        $this->assertEventFile(
+        $this->assertEventDataFromString(
             'Europe/Berlin',
-            './tests/ical/ical-monthly.ics',
+            file_get_contents('./tests/ical/ical-monthly.ics'),
             25,
             $checks
         );
@@ -128,9 +128,9 @@ class RecurrencesTest extends TestCase
             ['index' => 4, 'dateString' => '20191109T170000', 'timezone' => 'Europe/Berlin', 'message' => '5th event, CEST: '],
             ['index' => 5, 'dateString' => '20191110T180000', 'timezone' => 'Europe/Berlin', 'message' => '6th event, CEST: '],
         ];
-        $this->assertEventFile(
+        $this->assertEventDataFromString(
             'UTC',
-            './tests/ical/issue-196.ics',
+            file_get_contents('./tests/ical/issue-196.ics'),
             7,
             $checks
         );
@@ -535,8 +535,7 @@ class RecurrencesTest extends TestCase
         $testIcal .= PHP_EOL;
         $testIcal .= implode(PHP_EOL, $this->getIcalFooter());
 
-        $ical = new ICal(false, $options);
-        $ical->initFromString($testIcal);
+        $ical = ICal::initFromString($testIcal, $options);
 
         $events = $ical->events();
 
@@ -554,11 +553,11 @@ class RecurrencesTest extends TestCase
      * @param $checks
      * @return void
      */
-    public function assertEventFile($defaultTimezone, $file, $count, $checks): void
+    public function assertEventDataFromString($defaultTimezone, $data, $count, $checks): void
     {
         $options = $this->getOptions($defaultTimezone);
 
-        $ical = new ICal($file, $options);
+        $ical = ICal::initFromString($data, $options);
 
         $events = $ical->events();
 

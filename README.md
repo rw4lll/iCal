@@ -5,7 +5,6 @@ ICal package for php >=7.4 based on [u01jmg3/ics-parser parser](https://github.c
 Roadmap:
 - Get rid of support old php versions (5.6 - 7.3)
 - Replace logging calls with exceptions
-- Use Carbon instead of DateTime to get rid of internal date manipulation methods.
 - Use Symfony\String to support unicode strings and get rid of internal workaround methods.
 - Strict types
 - Event->toArray() method

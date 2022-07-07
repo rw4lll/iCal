@@ -1121,8 +1121,7 @@ class rfc5545RecurrenceExamplesTest extends TestCase
         $testIcal .= PHP_EOL;
         $testIcal .= implode(PHP_EOL, $this->getIcalFooter());
 
-        $ical = new ICal(false, $options);
-        $ical->initFromString($testIcal);
+        $ical = ICal::initFromString($testIcal, $options);
 
         $events = $ical->events();
 

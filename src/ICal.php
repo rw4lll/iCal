@@ -33,7 +33,6 @@ class ICal
         'disableCharacterReplacement',
         'filterDaysAfter',
         'filterDaysBefore',
-        'httpUserAgent',
         'skipRecurrence',
     ];
     /**
@@ -153,7 +152,7 @@ class ICal
      *
      * Source: http://unicode.org/repos/cldr/trunk/common/supplemental/windowsZones.xml
      */
-    private static array $windowsTimeZonesMap = array(
+    private static array $windowsTimeZonesMap = [
         'AUS Central Standard Time' => 'Australia/Darwin',
         'AUS Eastern Standard Time' => 'Australia/Sydney',
         'Afghanistan Standard Time' => 'Asia/Kabul',
@@ -289,7 +288,7 @@ class ICal
         'West Bank Standard Time' => 'Asia/Hebron',
         'West Pacific Standard Time' => 'Pacific/Port_Moresby',
         'Yakutsk Standard Time' => 'Asia/Yakutsk',
-    );
+    ];
     /**
      * Tracks the number of alarms in the current iCal feed
      *
@@ -414,30 +413,6 @@ class ICal
         'YEARLY' => 'year',
     ];
     /**
-     * Holds the username and password for HTTP basic authentication
-     *
-     * @var array
-     */
-    protected $httpBasicAuth = array();
-    /**
-     * Holds the custom User Agent string header
-     *
-     * @var string|null
-     */
-    protected ?string $httpUserAgent = null;
-    /**
-     * Holds the custom Accept Language string header
-     *
-     * @var string
-     */
-    protected $httpAcceptLanguage;
-    /**
-     * Holds the custom HTTP Protocol version
-     *
-     * @var string
-     */
-    protected $httpProtocolVersion;
-    /**
      * If `$filterDaysBefore` or `$filterDaysAfter` are set then the events are filtered according to the window defined
      * by this field and `$windowMaxTimestamp`.
      */
@@ -457,11 +432,11 @@ class ICal
     /**
      * Creates the ICal object
      *
-     * @param mixed $files
+     * @param array $lines
      * @param array $options
-     * @return void
+     * @throws Exception
      */
-    public function __construct($files = false, array $options = array())
+    public function __construct(array $lines = [], array $options = [])
     {
         if (PHP_VERSION_ID < 80100) {
             ini_set('auto_detect_line_endings', '1');
@@ -478,10 +453,7 @@ class ICal
             $this->defaultTimeZone = date_default_timezone_get();
         }
 
-        // Ideally you would use `PHP_INT_MIN` from PHP 7
-        $php_int_min = -2147483648;
-
-        $this->windowMinTimestamp = is_null($this->filterDaysBefore) ? $php_int_min : (new DateTime('now'))->sub(
+        $this->windowMinTimestamp = is_null($this->filterDaysBefore) ? PHP_INT_MIN : (new DateTime('now'))->sub(
             new DateInterval('P' . $this->filterDaysBefore . 'D')
         )->getTimestamp();
         $this->windowMaxTimestamp = is_null($this->filterDaysAfter) ? PHP_INT_MAX : (new DateTime('now'))->add(
@@ -490,18 +462,8 @@ class ICal
 
         $this->shouldFilterByWindow = !is_null($this->filterDaysBefore) || !is_null($this->filterDaysAfter);
 
-        if ($files !== false) {
-            $files = is_array($files) ? $files : array($files);
-
-            foreach ($files as $file) {
-                if (!is_array($file) && $this->isFileOrUrl($file)) {
-                    $lines = $this->fileOrUrl($file);
-                } else {
-                    $lines = is_array($file) ? $file : array($file);
-                }
-
-                $this->initFromLines($lines);
-            }
+        if(!empty($lines)) {
+            $this->initFromLines($lines);
         }
     }
 
@@ -511,7 +473,7 @@ class ICal
      * @param string $timeZone
      * @return bool
      */
-    protected function isValidTimeZoneId($timeZone)
+    protected function isValidTimeZoneId(string $timeZone)
     {
         return $this->isValidIanaTimeZoneId($timeZone) !== false
             || $this->isValidCldrTimeZoneId($timeZone) !== false
@@ -524,13 +486,13 @@ class ICal
      * @param string $timeZone
      * @return bool
      */
-    protected function isValidIanaTimeZoneId($timeZone)
+    protected function isValidIanaTimeZoneId(string $timeZone)
     {
         if (in_array($timeZone, $this->validIanaTimeZones)) {
             return true;
         }
 
-        $valid = array();
+        $valid = [];
         $tza = timezone_abbreviations_list();
 
         foreach ($tza as $zone) {
@@ -556,7 +518,7 @@ class ICal
      * @param string $timeZone
      * @return bool
      */
-    public function isValidCldrTimeZoneId($timeZone)
+    public function isValidCldrTimeZoneId(string $timeZone)
     {
         return array_key_exists(html_entity_decode($timeZone), self::$cldrTimeZonesMap);
     }
@@ -567,69 +529,9 @@ class ICal
      * @param string $timeZone
      * @return bool
      */
-    public function isValidWindowsTimeZoneId($timeZone)
+    public function isValidWindowsTimeZoneId(string $timeZone)
     {
         return array_key_exists(html_entity_decode($timeZone), self::$windowsTimeZonesMap);
-    }
-
-    /**
-     * Checks if a filename exists as a file or URL
-     *
-     * @param string $filename
-     * @return bool
-     */
-    protected function isFileOrUrl($filename)
-    {
-        return (file_exists($filename) || filter_var($filename, FILTER_VALIDATE_URL)) ?: false;
-    }
-
-    /**
-     * Reads an entire file or URL into an array
-     *
-     * @param string $filename
-     * @return array
-     * @throws Exception
-     */
-    protected function fileOrUrl($filename)
-    {
-        $options = array();
-        $options['http'] = array();
-        $options['http']['header'] = array();
-
-        if (!empty($this->httpBasicAuth) || !empty($this->httpUserAgent) || !empty($this->httpAcceptLanguage)) {
-            if (!empty($this->httpBasicAuth)) {
-                $username = $this->httpBasicAuth['username'];
-                $password = $this->httpBasicAuth['password'];
-                $basicAuth = base64_encode("{$username}:{$password}");
-
-                $options['http']['header'][] = "Authorization: Basic {$basicAuth}";
-            }
-
-            if (!empty($this->httpUserAgent)) {
-                $options['http']['header'][] = "User-Agent: {$this->httpUserAgent}";
-            }
-
-            if (!empty($this->httpAcceptLanguage)) {
-                $options['http']['header'][] = "Accept-language: {$this->httpAcceptLanguage}";
-            }
-        }
-
-        if (!empty($this->httpProtocolVersion)) {
-            $options['http']['protocol_version'] = $this->httpProtocolVersion;
-        } else {
-            $options['http']['protocol_version'] = '1.1';
-        }
-
-        $options['http']['header'][] = 'Connection: close';
-
-        $context = stream_context_create($options);
-
-        // phpcs:ignore CustomPHPCS.ControlStructures.AssignmentInCondition
-        if (($lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES, $context)) === false) {
-            throw new Exception("The file path or URL '{$filename}' does not exist.");
-        }
-
-        return $lines;
     }
 
     /**
@@ -639,7 +541,7 @@ class ICal
      * @param array $lines
      * @return void
      */
-    protected function initFromLines(array $lines)
+    protected function initFromLines(array $lines):ICal
     {
         $lines = $this->unfold($lines);
 
@@ -668,14 +570,14 @@ class ICal
 
                 if (!is_array($values)) {
                     if (!empty($values)) {
-                        $values = array($values); // Make an array as not one already
-                        $blankArray = array(); // Empty placeholder array
+                        $values = [$values]; // Make an array as not one already
+                        $blankArray = []; // Empty placeholder array
                         $values[] = $blankArray;
                     } else {
-                        $values = array(); // Use blank array to ignore this line
+                        $values = []; // Use blank array to ignore this line
                     }
                 } elseif (empty($values[0])) {
-                    $values = array(); // Use blank array to ignore this line
+                    $values = []; // Use blank array to ignore this line
                 }
 
                 // Reverse so that our array of properties is processed first
@@ -789,6 +691,7 @@ class ICal
 
             $this->processDateConversions();
         }
+        return $this;
     }
 
     /**
@@ -803,9 +706,7 @@ class ICal
         $string = implode(PHP_EOL, $lines);
         $string = preg_replace('/' . PHP_EOL . '[ \t]/', '', $string);
 
-        $lines = explode(PHP_EOL, $string);
-
-        return $lines;
+        return explode(PHP_EOL, $string);
     }
 
     /**
@@ -828,7 +729,7 @@ class ICal
      */
     protected function cleanData(string $data): string
     {
-        $replacementChars = array(
+        $replacementChars = [
             "\xe2\x80\x98" => "'",   // ‘
             "\xe2\x80\x99" => "'",   // ’
             "\xe2\x80\x9a" => "'",   // ‚
@@ -841,14 +742,14 @@ class ICal
             "\xe2\x80\x94" => '--',  // —
             "\xe2\x80\xa6" => '...', // …
             "\xc2\xa0" => ' ',
-        );
+        ];
         // Replace UTF-8 characters
         $cleanedData = strtr($data, $replacementChars);
 
         // Replace Windows-1252 equivalents
         $charsToReplace = array_map(function ($code) {
             return mb_chr($code);
-        }, array(133, 145, 146, 147, 148, 150, 151, 194));
+        }, [133, 145, 146, 147, 148, 150, 151, 194]);
         $cleanedData = static::mb_str_replace($charsToReplace, $replacementChars, $cleanedData);
 
         return $cleanedData;
@@ -861,7 +762,7 @@ class ICal
      * @param string|array $search
      * @param string|array $replace
      * @param string|array $subject
-     * @param string $encoding
+     * @param string|null $encoding
      * @param int $count
      * @return array|string
      */
@@ -869,8 +770,8 @@ class ICal
         $search,
         $replace,
         $subject,
-        $encoding = null,
-        &$count = 0
+        string $encoding = null,
+        int &$count = 0
     ) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (is_array($subject)) {
@@ -880,8 +781,8 @@ class ICal
             }
         } else {
             // Normalize $search and $replace so they are both arrays of the same length
-            $searches = is_array($search) ? array_values($search) : array($search);
-            $replacements = is_array($replace) ? array_values($replace) : array($replace);
+            $searches = is_array($search) ? array_values($search) : [$search];
+            $replacements = is_array($replace) ? array_values($replace) : [$replace];
             $replacements = array_pad($replacements, count($searches), '');
 
             foreach ($searches as $key => $search) {
@@ -892,7 +793,7 @@ class ICal
                 $replace = $replacements[$key];
                 $searchLen = mb_strlen($search, $encoding);
 
-                $sb = array();
+                $sb = [];
                 while (($offset = mb_strpos($subject, $search, 0, $encoding)) !== false) {
                     $sb[] = mb_substr($subject, 0, $offset, $encoding);
                     $subject = mb_substr($subject, $offset + $searchLen, null, $encoding);
@@ -916,8 +817,8 @@ class ICal
     public function keyValueFromString(string $text)
     {
         $splitLine = $this->parseLine($text);
-        $object = array();
-        $paramObj = array();
+        $object = [];
+        $paramObj = [];
         $valueObj = '';
         $i = 0;
 
@@ -934,7 +835,7 @@ class ICal
                 $i++;
                 $paramName = $splitLine[$i];
                 $i += 2;
-                $paramValue = array();
+                $paramValue = [];
                 $multiValue = false;
                 // A parameter can have multiple values separated by a comma
                 while ($i + 1 < count($splitLine) && $splitLine[$i + 1] === ',') {
@@ -1118,7 +1019,7 @@ class ICal
                 $key3 = $component;
 
                 if (!isset($this->cal[$key1][$key2][$key3]["{$keyword}_array"])) {
-                    $this->cal[$key1][$key2][$key3]["{$keyword}_array"] = array();
+                    $this->cal[$key1][$key2][$key3]["{$keyword}_array"] = [];
                 }
 
                 if (is_array($value)) {
@@ -1141,7 +1042,7 @@ class ICal
                 $key2 = ($this->eventCount - 1);
 
                 if (!isset($this->cal[$key1][$key2]["{$keyword}_array"])) {
-                    $this->cal[$key1][$key2]["{$keyword}_array"] = array();
+                    $this->cal[$key1][$key2]["{$keyword}_array"] = [];
                 }
 
                 if (is_array($value)) {
@@ -1221,11 +1122,11 @@ class ICal
     protected function processEvents(): void
     {
         $checks = null;
-        $events = $this->cal['VEVENT'] ?? array();
+        $events = $this->cal['VEVENT'] ?? [];
 
         if (!empty($events)) {
             foreach ($events as $key => $anEvent) {
-                foreach (array('DTSTART', 'DTEND', 'RECURRENCE-ID') as $type) {
+                foreach (['DTSTART', 'DTEND', 'RECURRENCE-ID'] as $type) {
                     if (isset($anEvent[$type])) {
                         $date = $anEvent["{$type}_array"][1];
 
@@ -1243,7 +1144,7 @@ class ICal
                     $uid = $anEvent['UID'];
 
                     if (!isset($this->alteredRecurrenceInstances[$uid])) {
-                        $this->alteredRecurrenceInstances[$uid] = array();
+                        $this->alteredRecurrenceInstances[$uid] = [];
                     }
 
                     $recurrenceDateUtc = $this->iCalDateToUnixTimestamp($anEvent['RECURRENCE-ID_array'][3]);
@@ -1253,7 +1154,7 @@ class ICal
                 $events[$key] = $anEvent;
             }
 
-            $eventKeysToRemove = array();
+            $eventKeysToRemove = [];
 
             foreach ($events as $key => $event) {
                 $checks[] = !isset($event['RECURRENCE-ID']);
@@ -1271,7 +1172,7 @@ class ICal
                         $eventKeysToRemove[] = $alteredEventKey;
 
                         $alteredEvent = array_replace_recursive($events[$key], $events[$alteredEventKey]);
-                        $this->alteredRecurrenceInstances[$event['UID']]['altered-event'] = array($key => $alteredEvent);
+                        $this->alteredRecurrenceInstances[$event['UID']]['altered-event'] = [$key => $alteredEvent];
                     }
                 }
 
@@ -1308,7 +1209,7 @@ class ICal
      * @param string $icalDate
      * @return int
      */
-    public function iCalDateToUnixTimestamp($icalDate)
+    public function iCalDateToUnixTimestamp(string $icalDate)
     {
         return $this->iCalDateToDateTime($icalDate)->getTimestamp();
     }
@@ -1407,15 +1308,15 @@ class ICal
      */
     protected function processRecurrences(): void
     {
-        $events = $this->cal['VEVENT'] ?? array();
+        $events = $this->cal['VEVENT'] ?? [];
 
         // If there are no events, then we have nothing to process.
         if (empty($events)) {
             return;
         }
 
-        $allEventRecurrences = array();
-        $eventKeysToRemove = array();
+        $allEventRecurrences = [];
+        $eventKeysToRemove = [];
 
         foreach ($events as $key => $anEvent) {
             if (!isset($anEvent['RRULE']) || $anEvent['RRULE'] === '') {
@@ -1426,13 +1327,13 @@ class ICal
             $anEvent['RRULE_array'][2] = self::RECURRENCE_EVENT;
 
             // Create new initial starting point.
-            $initialEventDate = $this->icalDateToDateTime($anEvent['DTSTART_array'][3]);
+            $initialEventDate = $this->iCalDateToDateTime($anEvent['DTSTART_array'][3]);
 
             // Separate the RRULE stanzas, and explode the values that are lists.
-            $rrules = array();
+            $rrules = [];
             foreach (array_filter(explode(';', $anEvent['RRULE'])) as $s) {
                 [$k, $v] = explode('=', $s);
-                if (in_array($k, array('BYSETPOS', 'BYDAY', 'BYMONTHDAY', 'BYMONTH', 'BYYEARDAY', 'BYWEEKNO'))) {
+                if (in_array($k, ['BYSETPOS', 'BYDAY', 'BYMONTHDAY', 'BYMONTH', 'BYYEARDAY', 'BYWEEKNO'])) {
                     $rrules[$k] = explode(',', $v);
                 } else {
                     $rrules[$k] = $v;
@@ -1452,7 +1353,7 @@ class ICal
                 $checkByDays = function ($carry, $weekday) {
                     return $carry && substr($weekday, -2) === $weekday;
                 };
-                if (!in_array($frequency, array('MONTHLY', 'YEARLY'))) {
+                if (!in_array($frequency, ['MONTHLY', 'YEARLY'])) {
                     if (!array_reduce($rrules['BYDAY'], $checkByDays, true)) {
                         error_log("ICal::ProcessRecurrences: A {$frequency} RRULE may not contain BYDAY values with numeric prefixes");
 
@@ -1503,18 +1404,18 @@ class ICal
              *   enddate = <icalDate> || <icalDateTime>
              */
             $count = 1;
-            $countLimit = (isset($rrules['COUNT'])) ? intval($rrules['COUNT']) : PHP_INT_MAX;
+            $countLimit = (isset($rrules['COUNT'])) ? (int)$rrules['COUNT'] : PHP_INT_MAX;
             $until = date_create()->modify("{$this->defaultSpan} years")->setTime(23, 59, 59)->getTimestamp();
 
             if (isset($rrules['UNTIL'])) {
                 $until = min($until, $this->iCalDateToUnixTimestamp($rrules['UNTIL']));
             }
 
-            $eventRecurrences = array();
+            $eventRecurrences = [];
 
             $frequencyRecurringDateTime = clone $initialEventDate;
             while ($frequencyRecurringDateTime->getTimestamp() <= $until && $count < $countLimit) {
-                $candidateDateTimes = array();
+                $candidateDateTimes = [];
 
                 // phpcs:ignore Squiz.ControlStructures.SwitchDeclaration.MissingDefault
                 switch ($frequency) {
@@ -1539,7 +1440,7 @@ class ICal
 
                     case 'WEEKLY':
                         $initialDayOfWeek = $frequencyRecurringDateTime->format('N');
-                        $matchingDays = array($initialDayOfWeek);
+                        $matchingDays = [$initialDayOfWeek];
 
                         if (!empty($rrules['BYDAY'])) {
                             // setISODate() below uses the ISO-8601 specification of weeks: start on
@@ -1596,7 +1497,7 @@ class ICal
                         break;
 
                     case 'MONTHLY':
-                        $matchingDays = array();
+                        $matchingDays = [];
 
                         if (!empty($rrules['BYMONTHDAY'])) {
                             $matchingDays = $this->getDaysOfMonthMatchingByMonthDayRRule(
@@ -1644,7 +1545,7 @@ class ICal
                         break;
 
                     case 'YEARLY':
-                        $matchingDays = array();
+                        $matchingDays = [];
 
                         if (!empty($rrules['BYMONTH'])) {
                             $bymonthRecurringDatetime = clone $frequencyRecurringDateTime;
@@ -1657,7 +1558,7 @@ class ICal
 
                                 // Determine the days of the month affected
                                 // (The interaction between BYMONTHDAY and BYDAY is resolved later.)
-                                $monthDays = array();
+                                $monthDays = [];
                                 if (!empty($rrules['BYMONTHDAY'])) {
                                     $monthDays = $this->getDaysOfMonthMatchingByMonthDayRRule(
                                         $rrules['BYMONTHDAY'],
@@ -1718,7 +1619,7 @@ class ICal
                         }
 
                         if ($matchingDays === []) {
-                            $matchingDays = array($frequencyRecurringDateTime->format('z') + 1);
+                            $matchingDays = [$frequencyRecurringDateTime->format('z') + 1];
                         } else {
                             sort($matchingDays);
                         }
@@ -1813,7 +1714,7 @@ class ICal
             $initialDateWasUTC = substr($anEvent['DTSTART'], -1) === 'Z';
 
             // Build the param array
-            $dateParamArray = array();
+            $dateParamArray = [];
             if (
                 !$initialDateWasUTC
                 && isset($anEvent['DTSTART_array'][0]['TZID'])
@@ -1829,16 +1730,16 @@ class ICal
                             $dateParamArray['TZID']
                         ) . ':' : '';
 
-                    foreach (array('DTSTART', 'DTEND') as $dtkey) {
+                    foreach (['DTSTART', 'DTEND'] as $dtkey) {
                         $anEvent[$dtkey] = $recurringDatetime->format(self::DATE_TIME_FORMAT)
                             . (($initialDateWasUTC) ? 'Z' : '');
 
-                        $anEvent["{$dtkey}_array"] = array(
+                        $anEvent["{$dtkey}_array"] = [
                             $dateParamArray,                    // [0] Array of params (incl. TZID)
                             $anEvent[$dtkey],                   // [1] ICalDateTime string w/o TZID
                             $recurringDatetime->getTimestamp(), // [2] Unix Timestamp
                             "{$tzidPrefix}{$anEvent[$dtkey]}",  // [3] Full ICalDateTime string
-                        );
+                        ];
 
                         if ($dtkey !== 'DTEND') {
                             $recurringDatetime->modify("{$eventLength} seconds");
@@ -1938,7 +1839,7 @@ class ICal
      */
     protected function resolveIndicesOfRange(array $indexes, int $limit): array
     {
-        $matching = array();
+        $matching = [];
         foreach ($indexes as $index) {
             if ($index > 0 && $index <= $limit) {
                 $matching[] = $index;
@@ -1979,7 +1880,7 @@ class ICal
      */
     protected function getDaysOfMonthMatchingByDayRRule(array $byDays, DateTime $initialDateTime): array
     {
-        $matchingDays = array();
+        $matchingDays = [];
 
         foreach ($byDays as $weekday) {
             $bydayDateTime = clone $initialDateTime;
@@ -2040,7 +1941,7 @@ class ICal
      */
     protected function filterValuesUsingBySetPosRRule(array $bySetPos, array $valuesList): array
     {
-        $filteredMatches = array();
+        $filteredMatches = [];
 
         foreach ($bySetPos as $setPosition) {
             if ($setPosition < 0) {
@@ -2088,7 +1989,7 @@ class ICal
         $weeksInThisYear = ($firstDayOfTheYear === 'Thu' || $isLeapYear && $firstDayOfTheYear === 'Wed') ? 53 : 52;
 
         $matchingWeeks = $this->resolveIndicesOfRange($byWeekNums, $weeksInThisYear);
-        $matchingDays = array();
+        $matchingDays = [];
         $byweekDateTime = clone $initialDateTime;
         foreach ($matchingWeeks as $weekNum) {
             $dayNum = $byweekDateTime->setISODate(
@@ -2146,7 +2047,7 @@ class ICal
      */
     protected function getDaysOfYearMatchingByMonthDayRRule(array $byMonthDays, DateTime $initialDateTime): array
     {
-        $matchingDays = array();
+        $matchingDays = [];
         $monthDateTime = clone $initialDateTime;
         for ($month = 1; $month < 13; $month++) {
             $monthDateTime->setDate(
@@ -2195,7 +2096,7 @@ class ICal
      */
     protected function getDaysOfYearMatchingByDayRRule(array $byDays, DateTime $initialDateTime): array
     {
-        $matchingDays = array();
+        $matchingDays = [];
 
         foreach ($byDays as $weekday) {
             $bydayDateTime = clone $initialDateTime;
@@ -2239,7 +2140,7 @@ class ICal
      */
     protected function reduceEventsToMinMaxRange(): void
     {
-        $events = $this->cal['VEVENT'] ?? array();
+        $events = $this->cal['VEVENT'] ?? [];
 
         if (!empty($events)) {
             foreach ($events as $key => $anEvent) {
@@ -2272,7 +2173,7 @@ class ICal
      */
     protected function processDateConversions(): void
     {
-        $events = $this->cal['VEVENT'] ?? array();
+        $events = $this->cal['VEVENT'] ?? [];
 
         if (!empty($events)) {
             foreach ($events as $key => $anEvent) {
@@ -2390,81 +2291,14 @@ class ICal
      * Initialises lines from a string
      *
      * @param string $string
+     * @param array $options
      * @return ICal
      */
-    public function initFromString(string $string): ICal
+    public static function initFromString(string $string, array $options = []): ICal
     {
-        $string = str_replace(array("\r\n", "\n\r", "\r"), "\n", $string);
-
-        if (empty($this->cal)) {
-            $lines = explode("\n", $string);
-
-            $this->initFromLines($lines);
-        } else {
-            trigger_error('ICal::initFromString: Calendar already initialised in constructor', E_USER_NOTICE);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Initialises lines from a URL
-     *
-     * @param string $url
-     * @param string|null $username
-     * @param string|null $password
-     * @param string|null $userAgent
-     * @param string|null $acceptLanguage
-     * @param string|null $httpProtocolVersion
-     * @return ICal
-     */
-    public function initFromUrl(
-        string $url,
-        ?string $username = null,
-        ?string $password = null,
-        ?string $userAgent = null,
-        ?string $acceptLanguage = null,
-        ?string $httpProtocolVersion = null
-    ): ICal {
-        if (!is_null($username) && !is_null($password)) {
-            $this->httpBasicAuth['username'] = $username;
-            $this->httpBasicAuth['password'] = $password;
-        }
-
-        if (!is_null($userAgent)) {
-            $this->httpUserAgent = $userAgent;
-        }
-
-        if (!is_null($acceptLanguage)) {
-            $this->httpAcceptLanguage = $acceptLanguage;
-        }
-
-        if (!is_null($httpProtocolVersion)) {
-            $this->httpProtocolVersion = $httpProtocolVersion;
-        }
-
-        $this->initFromFile($url);
-
-        return $this;
-    }
-
-    /**
-     * Initialises lines from a file
-     *
-     * @param string $file
-     * @return ICal
-     */
-    public function initFromFile(string $file): ICal
-    {
-        if (empty($this->cal)) {
-            $lines = $this->fileOrUrl($file);
-
-            $this->initFromLines($lines);
-        } else {
-            trigger_error('ICal::initFromFile: Calendar already initialised in constructor', E_USER_NOTICE);
-        }
-
-        return $this;
+        $string = str_replace(["\r\n", "\n\r", "\r"], "\n", $string);
+        $lines = explode("\n", $string);
+        return (new static([], $options))->initFromLines($lines);
     }
 
     /**
@@ -2498,7 +2332,7 @@ class ICal
     {
         $array = $this->cal;
 
-        return $array['VFREEBUSY'] ?? array();
+        return $array['VFREEBUSY'] ?? [];
     }
 
     /**
@@ -2582,10 +2416,10 @@ class ICal
         $events = $this->sortEventsWithOrder($this->events());
 
         if (empty($events)) {
-            return array();
+            return [];
         }
 
-        $extendedEvents = array();
+        $extendedEvents = [];
 
         if (!is_null($rangeStart)) {
             try {
@@ -2636,7 +2470,7 @@ class ICal
         }
 
         if (empty($extendedEvents)) {
-            return array();
+            return [];
         }
 
         return $extendedEvents;
@@ -2651,8 +2485,8 @@ class ICal
      */
     public function sortEventsWithOrder(array $events, int $sortOrder = SORT_ASC): array
     {
-        $extendedEvents = array();
-        $timestamp = array();
+        $extendedEvents = [];
+        $timestamp = [];
 
         foreach ($events as $key => $anEvent) {
             $extendedEvents[] = $anEvent;

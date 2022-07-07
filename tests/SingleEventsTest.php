@@ -121,8 +121,7 @@ class SingleEventsTest extends TestCase
 
         date_default_timezone_set('UTC');
 
-        $ical = new ICal(false, $options);
-        $ical->initFromString($testIcal);
+        $ical = ICal::initFromString($testIcal, $options);
 
         $events = $ical->events();
 

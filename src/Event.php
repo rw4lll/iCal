@@ -4,8 +4,6 @@ namespace Rw4lll\ICal;
 
 class Event
 {
-    public const HTML_TEMPLATE = '<p>%s: %s</p>';
-
     /**
      * https://www.kanzaki.com/docs/ical/summary.html
      *
@@ -131,7 +129,7 @@ class Event
      * @param  array $data
      * @return void
      */
-    public function __construct(array $data = array())
+    public function __construct(array $data = [])
     {
         foreach ($data as $key => $value) {
             $variable = self::snakeCase($key);
@@ -149,7 +147,9 @@ class Event
     {
         if (is_string($value)) {
             return stripslashes(trim(str_replace('\n', "\n", $value)));
-        } elseif (is_array($value)) {
+        }
+
+        if (is_array($value)) {
             return array_map('self::prepareData', $value);
         }
 
@@ -160,12 +160,11 @@ class Event
      * Returns Event data excluding anything blank
      * within an HTML template
      *
-     * @param  string $html HTML template to use
-     * @return string
+     * @return array
      */
-    public function printData($html = self::HTML_TEMPLATE)
+    public function toArray(): array
     {
-        $data = array(
+        $result = [
             'SUMMARY'       => $this->summary,
             'DTSTART'       => $this->dtstart,
             'DTEND'         => $this->dtend,
@@ -183,18 +182,10 @@ class Event
             'TRANSP'        => $this->transp,
             'ORGANISER'     => $this->organizer,
             'ATTENDEE(S)'   => $this->attendee,
-        );
+        ];
 
         // Remove any blank values
-        $data = array_filter($data);
-
-        $output = '';
-
-        foreach ($data as $key => $value) {
-            $output .= sprintf($html, $key, $value);
-        }
-
-        return $output;
+        return array_filter($result);
     }
 
     /**

@@ -1,26 +1,23 @@
 <?php
-// phpcs:disable Generic.Arrays.DisallowLongArraySyntax
 
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Rw4lll\ICal\ICal;
 
 try {
-    $ical = new ICal('ICal.ics', [
-        'defaultSpan'                 => 2,     // Default value
-        'defaultTimeZone'             => 'UTC',
-        'defaultWeekStart'            => 'MO',  // Default value
-        'disableCharacterReplacement' => false, // Default value
-        'filterDaysAfter'             => null,  // Default value
-        'filterDaysBefore'            => null,  // Default value
-        'httpUserAgent'               => null,  // Default value
-        'skipRecurrence'              => false, // Default value
-    ]);
-    // $ical->initFromFile('ICal.ics');
-    // $ical->initFromUrl('https://raw.githubusercontent.com/u01jmg3/ics-parser/master/examples/ICal.ics', $username = null, $password = null, $userAgent = null);
-} catch (\Exception $e) {
-    die($e);
-}
+        $icalData = file_get_contents(__DIR__ .'/ICal.ics');
+        $ical = ICal::initFromString($icalData, [
+            'defaultSpan'                 => 2,     // Default value
+            'defaultTimeZone'             => 'UTC',
+            'defaultWeekStart'            => 'MO',  // Default value
+            'disableCharacterReplacement' => false, // Default value
+            'filterDaysAfter'             => null,  // Default value
+            'filterDaysBefore'            => null,  // Default value
+            'skipRecurrence'              => false, // Default value
+        ]);
+    } catch (\Exception $e) {
+        die($e);
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">

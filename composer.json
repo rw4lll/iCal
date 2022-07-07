@@ -18,12 +18,11 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "symfony/string": "^5.4",
-        "nesbot/carbon": "^2.59"
+        "php": ">=7.4 || ~8.0.0 || ~8.1.0",
+        "ext-mbstring": "*",
+        "symfony/string": "^5.4"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "~3.6.0",
         "phpunit/phpunit": "^9",
         "rector/rector": "^0.13.7",
         "vimeo/psalm": "^4.24"
