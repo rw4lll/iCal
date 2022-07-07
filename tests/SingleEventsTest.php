@@ -123,7 +123,7 @@ class SingleEventsTest extends TestCase
 
         $ical = ICal::initFromString($testIcal, $options);
 
-        $events = iterator_to_array($ical->getEvents());
+        $events = $ical->getEvents();
 
         $this->assertCount($count, $events);
 
@@ -543,7 +543,7 @@ class SingleEventsTest extends TestCase
 
         $ical = new ICal($file, $options);
 
-        $events = iterator_to_array($ical->getEvents());
+        $events = $ical->getEvents();
 
         $this->assertCount($count, $events);
 

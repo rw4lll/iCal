@@ -433,6 +433,11 @@ class ICal
     private bool $shouldFilterByWindow = false;
 
     /**
+     * @param array<Event> $events
+     */
+    protected array $events = [];
+
+    /**
      * Creates the ICal object
      *
      * @param array $lines
@@ -473,6 +478,7 @@ class ICal
 
         if (!empty($lines)) {
             $this->initFromLines($lines);
+            $this->loadEvents();
         }
     }
 
@@ -549,6 +555,7 @@ class ICal
      *
      * @param array $lines
      * @return void
+     * @throws Exception
      */
     protected function initFromLines(array $lines): ICal
     {
@@ -2310,13 +2317,15 @@ class ICal
      *
      * @param string $string
      * @param array $options
+     * @param LoggerInterface|null $logger
      * @return ICal
+     * @throws Exception
      */
     public static function initFromString(string $string, array $options = [], ?LoggerInterface $logger = null): ICal
     {
         $string = str_replace(["\r\n", "\n\r", "\r"], "\n", $string);
         $lines = explode("\n", $string);
-        return (new static([], $options, $logger))->initFromLines($lines);
+        return (new static($lines, $options, $logger));
     }
 
     /**
@@ -2359,7 +2368,7 @@ class ICal
      */
     public function hasEvents(): bool
     {
-        return !empty($this->getEvents());
+        return !empty($this->events);
     }
 
     /**
@@ -2367,17 +2376,25 @@ class ICal
      * Every event is a class with the event
      * details being properties within it.
      *
-     * @return \Generator
+     * @return void
      */
-    public function getEvents(): \Generator
+    protected function loadEvents(): void
     {
         $events = $this->cal['VEVENT'] ?? [];
 
         if (!empty($events)) {
             foreach ($events as $event) {
-                yield new Event($event);
+                $this->events[] = new Event($event);
             }
         }
+    }
+
+    /**
+     * @return array<Event>
+     */
+    public function getEvents(): array
+    {
+        return $this->events;
     }
 
     /**
@@ -2386,6 +2403,7 @@ class ICal
      *
      * @param string $interval
      * @return array
+     * @throws Exception
      */
     public function eventsFromInterval(string $interval): array
     {

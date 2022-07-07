@@ -1123,7 +1123,7 @@ class rfc5545RecurrenceExamplesTest extends TestCase
 
         $ical = ICal::initFromString($testIcal, $options);
 
-        $events = iterator_to_array($ical->getEvents());
+        $events = $ical->getEvents();
 
         $this->assertCount($count, $events);
 
