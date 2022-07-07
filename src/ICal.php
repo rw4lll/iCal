@@ -2512,9 +2512,9 @@ class ICal
     /**
      * Sorts events based on a given sort order
      *
-     * @param array $events
+     * @param array<Event> $events
      * @param int $sortOrder Either SORT_ASC, SORT_DESC, SORT_REGULAR, SORT_NUMERIC, SORT_STRING
-     * @return array
+     * @return array<Event>
      */
     public function sortEventsWithOrder(array $events, int $sortOrder = SORT_ASC): array
     {
