@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
+use Rw4lll\ICal\DateTimeParser;
 use Rw4lll\ICal\ICal;
 
 /**
@@ -49,7 +50,7 @@ use Rw4lll\ICal\ICal;
  *   have been similarly commented out and annotated with a ticket number
  *   (if one exists).
  */
-class rfc5545RecurrenceExamplesTest extends TestCase
+class RFC5545RecurrenceExamplesTest extends TestCase
 {
     private $originalTimeZone = null;
 
@@ -1145,10 +1146,7 @@ class rfc5545RecurrenceExamplesTest extends TestCase
             date_default_timezone_set($timeZone);
         }
 
-        $expectedTimeStamp = strtotime($expectedDateString);
-
-        $this->assertEquals($expectedTimeStamp, $event->dtstart_array[2], $message . 'timestamp mismatch (expected ' . $expectedDateString . ' vs actual ' . $event->dtstart . ')');
-        $this->assertEquals($expectedDateString, $event->dtstart, $message . 'dtstart mismatch (timestamp is okay)');
+        $this->assertEquals(DateTimeParser::parse($expectedDateString), $event->dtstart, $message . 'dtstart mismatch');
     }
 
     /**

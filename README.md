@@ -1,11 +1,11 @@
 # PHP ICal Package
 
-ICal package for php >=7.4 based on [u01jmg3/ics-parser parser](https://github.com/u01jmg3/ics-parser).
+ICal package for php >=7.4 based on [u01jmg3/ics-parser parser](https://github.com/u01jmg3/ics-parser) and
+[sabre-io/vobject](https://github.com/sabre-io/vobject) packages.
 
 Roadmap:
 - Get rid of support old php versions (5.6 - 7.3)
 - Replace logging calls with exceptions
-- Use Symfony\String to support unicode strings and get rid of internal workaround methods.
 - Strict types
 - Event->toArray() method
 - Classes for ics file generation

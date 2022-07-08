@@ -2,126 +2,150 @@
 
 namespace Rw4lll\ICal;
 
+use DateInterval;
+use DateTimeImmutable;
+
 class Event
 {
     /**
      * https://www.kanzaki.com/docs/ical/summary.html
      *
-     * @var $summary
+     * @var string $summary
      */
-    public $summary;
+    public string $summary;
 
     /**
      * https://www.kanzaki.com/docs/ical/dtstart.html
      *
-     * @var $dtstart
+     * @var DateTimeImmutable $dtstart
      */
-    public $dtstart;
+    public DateTimeImmutable $dtstart;
 
     /**
      * https://www.kanzaki.com/docs/ical/dtend.html
      *
-     * @var $dtend
+     * @var DateTimeImmutable $dtend
      */
-    public $dtend;
+    public DateTimeImmutable $dtend;
 
     /**
      * https://www.kanzaki.com/docs/ical/duration.html
      *
-     * @var $duration
+     * @var DateInterval $duration
      */
-    public $duration;
+    public DateInterval $duration;
 
     /**
      * https://www.kanzaki.com/docs/ical/dtstamp.html
      *
-     * @var $dtstamp
+     * @var DateTimeImmutable $dtstamp
      */
-    public $dtstamp;
+    public DateTimeImmutable $dtstamp;
 
     /**
      * When the event starts, represented as a timezone-adjusted string
      *
-     * @var $dtstart_tz
+     * @var DateTimeImmutable $dtstart_tz
      */
-    public $dtstart_tz;
+    public DateTimeImmutable $dtstart_tz;
 
     /**
      * When the event ends, represented as a timezone-adjusted string
      *
-     * @var $dtend_tz
+     * @var DateTimeImmutable $dtend_tz
      */
-    public $dtend_tz;
+    public DateTimeImmutable $dtend_tz;
 
     /**
      * https://www.kanzaki.com/docs/ical/uid.html
      *
-     * @var $uid
+     * @var string $uid
      */
-    public $uid;
+    public string $uid;
 
     /**
      * https://www.kanzaki.com/docs/ical/created.html
      *
-     * @var $created
+     * @var DateTimeImmutable $created
      */
-    public $created;
+    public DateTimeImmutable $created;
 
     /**
      * https://www.kanzaki.com/docs/ical/lastModified.html
      *
-     * @var $last_modified
+     * @var DateTimeImmutable $last_modified
      */
-    public $last_modified;
+    public DateTimeImmutable $last_modified;
 
     /**
      * https://www.kanzaki.com/docs/ical/description.html
      *
-     * @var $description
+     * @var string $description
      */
-    public $description;
+    public string $description;
 
     /**
      * https://www.kanzaki.com/docs/ical/location.html
      *
-     * @var $location
+     * @var string $location
      */
-    public $location;
+    public string $location;
 
     /**
      * https://www.kanzaki.com/docs/ical/sequence.html
      *
-     * @var $sequence
+     * @var int $sequence
      */
-    public $sequence;
+    public int $sequence;
 
     /**
      * https://www.kanzaki.com/docs/ical/status.html
      *
-     * @var $status
+     * @var string $status
      */
-    public $status;
+    public string $status;
 
     /**
      * https://www.kanzaki.com/docs/ical/transp.html
      *
-     * @var $transp
+     * @var string $transp
      */
-    public $transp;
+    public string $transp;
 
     /**
      * https://www.kanzaki.com/docs/ical/organizer.html
      *
-     * @var $organizer
+     * @var string $organizer
      */
-    public $organizer;
+    public string $organizer;
 
     /**
      * https://www.kanzaki.com/docs/ical/attendee.html
      *
-     * @var $attendee
+     * @var string $attendee
      */
-    public $attendee;
+    public string $attendee;
+
+    protected const STRING_PROPERTIES = [
+        'summary',
+        'uid',
+        'description',
+        'location',
+        'status',
+        'transp',
+        'organizer',
+        'attendee'
+    ];
+
+    protected const DATETIME_PROPERTIES = [
+        'dtstart',
+        'dtend',
+        'dtstamp',
+        'dtstart_tz',
+        'dtend_tz',
+        'created',
+        'last_modified'
+    ];
 
     /**
      * Creates the Event object
@@ -132,8 +156,20 @@ class Event
     public function __construct(array $data = [])
     {
         foreach ($data as $key => $value) {
-            $variable = self::snakeCase($key);
-            $this->{$variable} = self::prepareData($value);
+            $variable = $this->toSnakeCase($key);
+            if ($variable === 'sequence') {
+                $value = (int)$value;
+            } elseif ($variable === 'duration') {
+                $value = DateTimeParser::parseDuration($value);
+            } elseif (in_array($variable, self::STRING_PROPERTIES)) {
+                $value = (string)$value;
+            } elseif (in_array($variable, self::DATETIME_PROPERTIES)) {
+                $value = DateTimeParser::parse($value);
+            } else {
+                //custom props
+                $value = static::prepareCustomProperty($value);
+            }
+            $this->{$variable} = $value;
         }
     }
 
@@ -143,14 +179,14 @@ class Event
      * @param  mixed $value
      * @return mixed
      */
-    protected function prepareData($value)
+    protected static function prepareCustomProperty($value)
     {
         if (is_string($value)) {
             return stripslashes(trim(str_replace('\n', "\n", $value)));
         }
 
         if (is_array($value)) {
-            return array_map('self::prepareData', $value);
+            return array_map('self::prepareCustomProperty', $value);
         }
 
         return $value;
@@ -198,17 +234,17 @@ class Event
     /**
      * Converts the given input to snake_case
      *
-     * @param  string $input
-     * @param  string $glue
-     * @param  string $separator
+     * @param string $input
+     * @param string $glue
+     * @param string $separator
      * @return string
      */
-    protected static function snakeCase($input, $glue = '_', $separator = '-')
+    protected function toSnakeCase(string $input, string $glue = '_', string $separator = '-'): string
     {
-        $input = preg_split('/(?<=[a-z])(?=[A-Z])/x', $input);
-        $input = implode($glue, $input);
-        $input = str_replace($separator, $glue, $input);
+        $result = preg_split('/(?<=[a-z])(?=[A-Z])/x', $input);
+        $result = implode($glue, $result);
+        $result = str_replace($separator, $glue, $result);
 
-        return strtolower($input);
+        return strtolower($result);
     }
 }

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
+use Rw4lll\ICal\DateTimeParser;
 use Rw4lll\ICal\ICal;
 
 /**
@@ -583,10 +584,7 @@ class RecurrencesTest extends TestCase
             date_default_timezone_set($timeZone);
         }
 
-        $expectedTimeStamp = strtotime($expectedDateString);
-
-        $this->assertEquals($expectedTimeStamp, $event->dtstart_array[2], $message . 'timestamp mismatch (expected ' . $expectedDateString . ' vs actual ' . $event->dtstart . ')');
-        $this->assertEquals($expectedDateString, $event->dtstart, $message . 'dtstart mismatch (timestamp is okay)');
+        $this->assertEquals(DateTimeParser::parse($expectedDateString), $event->dtstart, $message . 'dtstart mismatch');
     }
 
     /**
