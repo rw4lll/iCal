@@ -231,7 +231,7 @@ class Event
 
         if(!empty($customFields)) {
             foreach ($customFields as $key => $value) {
-                $result[$key] = $this->{$value};
+                $result[$key] = $this->{$value} ?? null;
             }
         }
 
