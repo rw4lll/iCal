@@ -12,7 +12,7 @@ class Event
      *
      * @var string $summary
      */
-    public string $summary;
+    public string $summary = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/dtstart.html
@@ -82,14 +82,14 @@ class Event
      *
      * @var string $description
      */
-    public string $description;
+    public string $description = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/location.html
      *
      * @var string $location
      */
-    public string $location;
+    public string $location = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/sequence.html
@@ -103,28 +103,28 @@ class Event
      *
      * @var string $status
      */
-    public string $status;
+    public string $status = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/transp.html
      *
      * @var string $transp
      */
-    public string $transp;
+    public string $transp = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/organizer.html
      *
      * @var string $organizer
      */
-    public string $organizer;
+    public string $organizer = '';
 
     /**
      * https://www.kanzaki.com/docs/ical/attendee.html
      *
      * @var string $attendee
      */
-    public string $attendee;
+    public string $attendee = '';
 
     protected const STRING_PROPERTIES = [
         'summary',
@@ -170,6 +170,14 @@ class Event
                 $value = static::prepareCustomProperty($value);
             }
             $this->{$variable} = $value;
+        }
+        //fix issue when dtstart or dtend are missing in ICal
+        if(!isset($this->dtend) && isset($this->dtstart) ) {
+            $this->dtend = $this->dtstart->modify('+1 day');
+        }
+
+        if(!isset($this->dtstart) && isset($this->dtend) ) {
+            $this->dtstart = $this->dtend->modify('-1 day');
         }
     }
 

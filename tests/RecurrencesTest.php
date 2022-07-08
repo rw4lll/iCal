@@ -7,6 +7,7 @@ namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use Rw4lll\ICal\DateTimeParser;
+use Rw4lll\ICal\Event;
 use Rw4lll\ICal\ICal;
 
 /**
@@ -133,6 +134,24 @@ class RecurrencesTest extends TestCase
             'UTC',
             file_get_contents('./tests/ical/issue-196.ics'),
             7,
+            $checks
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testMissingDTEndFromFile(): void
+    {
+        $checks = [
+            ['index' => 0, 'dateString' => '20180701', 'message' => '1st event, CEST: '],
+            ['index' => 1, 'dateString' => '20180801T000000', 'message' => '2nd event, CEST: '],
+            ['index' => 2, 'dateString' => '20180901T000000', 'message' => '3rd event, CEST: '],
+        ];
+        $this->assertEventDataFromString(
+            'Europe/Berlin',
+            file_get_contents('./tests/ical/ical-missing-dtend.ics'),
+            25,
             $checks
         );
     }
@@ -578,7 +597,7 @@ class RecurrencesTest extends TestCase
      * @param $timeZone
      * @return void
      */
-    public function assertEvent($event, $expectedDateString, $message, $timeZone = null): void
+    public function assertEvent(Event $event, $expectedDateString, $message, $timeZone = null): void
     {
         if (!is_null($timeZone)) {
             date_default_timezone_set($timeZone);
