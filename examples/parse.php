@@ -78,7 +78,7 @@ try {
                         $dtstart = $ical->iCalDateToDateTime($event->dtstart_array[3]);
                         echo $event->summary . ' (' . $dtstart->format('d-m-Y H:i') . ')';
                     ?></h3>
-                    <?php echo $event->printData() ?>
+                    <?php echo json_encode($event->toArray()) ?>
                 </div>
             </div>
         </div>

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Rw4lll\ICal;
 
@@ -228,9 +229,9 @@ class ICal
      */
     protected function isValidTimeZoneId(string $timeZone)
     {
-        return $this->isValidIanaTimeZoneId($timeZone) !== false
-            || $this->isValidCldrTimeZoneId($timeZone) !== false
-            || $this->isValidWindowsTimeZoneId($timeZone) !== false;
+        return $this->isValidIanaTimeZoneId($timeZone)
+            || $this->isValidCldrTimeZoneId($timeZone)
+            || $this->isValidWindowsTimeZoneId($timeZone);
     }
 
     /**
@@ -504,9 +505,8 @@ class ICal
         $charsToReplace = array_map(function ($code) {
             return mb_chr($code);
         }, [133, 145, 146, 147, 148, 150, 151, 194]);
-        $cleanedData = static::mb_str_replace($charsToReplace, $replacementChars, $cleanedData);
 
-        return $cleanedData;
+        return static::mb_str_replace($charsToReplace, $replacementChars, $cleanedData);
     }
 
     /**
@@ -1251,9 +1251,9 @@ class ICal
                         foreach ($matchingDays as $day) {
                             $clonedDateTime = clone $frequencyRecurringDateTime;
                             $candidateDateTimes[] = $clonedDateTime->setISODate(
-                                $frequencyRecurringDateTime->format('o'),
-                                $frequencyRecurringDateTime->format('W'),
-                                $day
+                                (int)$frequencyRecurringDateTime->format('o'),
+                                (int)$frequencyRecurringDateTime->format('W'),
+                                (int)$day
                             );
                         }
 
@@ -1299,9 +1299,9 @@ class ICal
 
                             $clonedDateTime = clone $frequencyRecurringDateTime;
                             $candidateDateTimes[] = $clonedDateTime->setDate(
-                                $frequencyRecurringDateTime->format('Y'),
-                                $frequencyRecurringDateTime->format('m'),
-                                $day
+                                (int)$frequencyRecurringDateTime->format('Y'),
+                                (int)$frequencyRecurringDateTime->format('m'),
+                                (int)$day
                             );
                         }
 
@@ -1314,9 +1314,9 @@ class ICal
                             $bymonthRecurringDatetime = clone $frequencyRecurringDateTime;
                             foreach ($rrules['BYMONTH'] as $byMonth) {
                                 $bymonthRecurringDatetime->setDate(
-                                    $frequencyRecurringDateTime->format('Y'),
-                                    $byMonth,
-                                    $frequencyRecurringDateTime->format('d')
+                                    (int)$frequencyRecurringDateTime->format('Y'),
+                                    (int)$byMonth,
+                                    (int)$frequencyRecurringDateTime->format('d')
                                 );
 
                                 // Determine the days of the month affected
@@ -1339,9 +1339,9 @@ class ICal
                                 // And add each of them to the list of recurrences
                                 foreach ($monthDays as $day) {
                                     $matchingDays[] = $bymonthRecurringDatetime->setDate(
-                                            $frequencyRecurringDateTime->format('Y'),
-                                            $bymonthRecurringDatetime->format('m'),
-                                            $day
+                                            (int)$frequencyRecurringDateTime->format('Y'),
+                                            (int)$bymonthRecurringDatetime->format('m'),
+                                            (int)$day
                                         )->format('z') + 1;
                                 }
                             }
@@ -1394,9 +1394,9 @@ class ICal
                         foreach ($matchingDays as $day) {
                             $clonedDateTime = clone $frequencyRecurringDateTime;
                             $candidateDateTimes[] = $clonedDateTime->setDate(
-                                $frequencyRecurringDateTime->format('Y'),
+                                (int)$frequencyRecurringDateTime->format('Y'),
                                 1,
-                                $day
+                                (int)$day
                             );
                         }
 
@@ -1418,10 +1418,8 @@ class ICal
                         return $exdate->getTimestamp() == $timestamp;
                     });
 
-                    if (isset($this->alteredRecurrenceInstances[$anEvent['UID']])) {
-                        if (in_array($timestamp, $this->alteredRecurrenceInstances[$anEvent['UID']])) {
-                            $isExcluded = true;
-                        }
+                    if (isset($this->alteredRecurrenceInstances[$anEvent['UID']]) && in_array($timestamp, $this->alteredRecurrenceInstances[$anEvent['UID']])) {
+                        $isExcluded = true;
                     }
 
                     if (!$isExcluded) {
@@ -1588,7 +1586,7 @@ class ICal
      */
     protected function getDaysOfMonthMatchingByMonthDayRRule(array $byMonthDays, DateTime $initialDateTime): array
     {
-        return $this->resolveIndicesOfRange($byMonthDays, $initialDateTime->format('t'));
+        return $this->resolveIndicesOfRange($byMonthDays, (int)$initialDateTime->format('t'));
     }
 
     /**
@@ -1756,9 +1754,8 @@ class ICal
         $byweekDateTime = clone $initialDateTime;
         foreach ($matchingWeeks as $weekNum) {
             $dayNum = $byweekDateTime->setISODate(
-                    $initialDateTime->format('Y'),
-                    $weekNum,
-                    1
+                    (int)$initialDateTime->format('Y'),
+                    (int)$weekNum
                 )->format('z') + 1;
             for ($x = 0; $x < 7; ++$x) {
                 $matchingDays[] = $x + $dayNum;
@@ -1814,7 +1811,7 @@ class ICal
         $monthDateTime = clone $initialDateTime;
         for ($month = 1; $month < 13; $month++) {
             $monthDateTime->setDate(
-                $initialDateTime->format('Y'),
+                (int)$initialDateTime->format('Y'),
                 $month,
                 1
             );
@@ -1822,9 +1819,9 @@ class ICal
             $monthDays = $this->getDaysOfMonthMatchingByMonthDayRRule($byMonthDays, $monthDateTime);
             foreach ($monthDays as $day) {
                 $matchingDays[] = $monthDateTime->setDate(
-                        $initialDateTime->format('Y'),
-                        $monthDateTime->format('m'),
-                        $day
+                        (int)$initialDateTime->format('Y'),
+                        (int)$monthDateTime->format('m'),
+                        (int)$day
                     )->format('z') + 1;
             }
         }
@@ -2000,10 +1997,10 @@ class ICal
      *
      * @param string $date
      * @param DateInterval $duration
-     * @param string $format
+     * @param string|null $format
      * @return int|DateTime
      */
-    protected function parseDuration(string $date, DateInterval $duration, string $format = self::UNIX_FORMAT)
+    protected function parseDuration(string $date, DateInterval $duration, ?string $format = self::UNIX_FORMAT)
     {
         $dateTime = date_create($date);
         $dateTime->modify("{$duration->y} year");

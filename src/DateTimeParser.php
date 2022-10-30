@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Rw4lll\ICal;
 
@@ -35,7 +36,7 @@ class DateTimeParser
     public static function parseDateTime($dt, DateTimeZone $tz = null)
     {
         // Format is YYYYMMDD + "T" + hhmmss
-        $result = preg_match('/^([0-9]{4})([0-1][0-9])([0-3][0-9])T([0-2][0-9])([0-5][0-9])([0-5][0-9])([Z]?)$/', $dt, $matches);
+        $result = preg_match('/^(\d{4})([0-1]\d)([0-3]\d)T([0-2]\d)([0-5]\d)([0-5]\d)([Z]?)$/', $dt, $matches);
 
         if (!$result) {
             throw new ICalValidationException('The supplied iCalendar datetime value is incorrect: '.$dt);
@@ -65,7 +66,7 @@ class DateTimeParser
     public static function parseDate($date, DateTimeZone $tz = null)
     {
         // Format is YYYYMMDD
-        $result = preg_match('/^([0-9]{4})([0-1][0-9])([0-3][0-9])$/', $date, $matches);
+        $result = preg_match('/^(\d{4})([0-1]\d)([0-3]\d)$/', $date, $matches);
 
         if (!$result) {
             throw new ICalValidationException('The supplied iCalendar date value is incorrect: '.$date);
@@ -270,20 +271,20 @@ class DateTimeParser
         $regex = '/^
             (?:  # date part
                 (?:
-                    (?: (?<year> [0-9]{4}) (?: -)?| --)
-                    (?<month> [0-9]{2})?
+                    (?: (?<year> \d{4}) (?: -)?| --)
+                    (?<month> \d{2})?
                 |---)
-                (?<date> [0-9]{2})?
+                (?<date> \d{2})?
             )?
             (?:T  # time part
-                (?<hour> [0-9]{2} | -)
-                (?<minute> [0-9]{2} | -)?
-                (?<second> [0-9]{2})?
+                (?<hour> \d{2} | -)
+                (?<minute> \d{2} | -)?
+                (?<second> \d{2})?
 
-                (?: \.[0-9]{3})? # milliseconds
+                (?: \.\d{3})? # milliseconds
                 (?P<timezone> # timezone offset
 
-                    Z | (?: \+|-)(?: [0-9]{4})
+                    Z | (?: \+|-)(?: \d{4})
 
                 )?
 
@@ -294,20 +295,20 @@ class DateTimeParser
             // Attempting to parse the extended format.
             $regex = '/^
                 (?: # date part
-                    (?: (?<year> [0-9]{4}) - | -- )
-                    (?<month> [0-9]{2}) -
-                    (?<date> [0-9]{2})
+                    (?: (?<year> \d{4}) - | -- )
+                    (?<month> \d{2}) -
+                    (?<date> \d{2})
                 )?
                 (?:T # time part
 
-                    (?: (?<hour> [0-9]{2}) : | -)
-                    (?: (?<minute> [0-9]{2}) : | -)?
-                    (?<second> [0-9]{2})?
+                    (?: (?<hour> \d{2}) : | -)
+                    (?: (?<minute> \d{2}) : | -)?
+                    (?<second> \d{2})?
 
-                    (?: \.[0-9]{3})? # milliseconds
+                    (?: \.\d{3})? # milliseconds
                     (?P<timezone> # timezone offset
 
-                        Z | (?: \+|-)(?: [0-9]{2}:[0-9]{2})
+                        Z | (?: \+|-)(?: \d{2}:\d{2})
 
                     )?
 
@@ -387,14 +388,14 @@ class DateTimeParser
     public static function parseVCardTime($date)
     {
         $regex = '/^
-            (?<hour> [0-9]{2} | -)
-            (?<minute> [0-9]{2} | -)?
-            (?<second> [0-9]{2})?
+            (?<hour> \d{2} | -)
+            (?<minute> \d{2} | -)?
+            (?<second> \d{2})?
 
-            (?: \.[0-9]{3})? # milliseconds
+            (?: \.\d{3})? # milliseconds
             (?P<timezone> # timezone offset
 
-                Z | (?: \+|-)(?: [0-9]{4})
+                Z | (?: \+|-)(?: \d{4})
 
             )?
             $/x';
@@ -402,14 +403,14 @@ class DateTimeParser
         if (!preg_match($regex, $date, $matches)) {
             // Attempting to parse the extended format.
             $regex = '/^
-                (?: (?<hour> [0-9]{2}) : | -)
-                (?: (?<minute> [0-9]{2}) : | -)?
-                (?<second> [0-9]{2})?
+                (?: (?<hour> \d{2}) : | -)
+                (?: (?<minute> \d{2}) : | -)?
+                (?<second> \d{2})?
 
-                (?: \.[0-9]{3})? # milliseconds
+                (?: \.\d{3})? # milliseconds
                 (?P<timezone> # timezone offset
 
-                    Z | (?: \+|-)(?: [0-9]{2}:[0-9]{2})
+                    Z | (?: \+|-)(?: \d{2}:\d{2})
 
                 )?
                 $/x';
