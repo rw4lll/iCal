@@ -202,7 +202,7 @@ class ICal
         }
 
         // Fallback to use the system default time zone
-        if (!isset($this->defaultTimeZone) || !$this->isValidTimeZoneId($this->defaultTimeZone)) {
+        if (!isset($this->defaultTimeZone) || !TimeZoneHelper::isValidTimeZoneId($this->defaultTimeZone)) {
             $this->defaultTimeZone = date_default_timezone_get();
         }
 
@@ -222,73 +222,6 @@ class ICal
     }
 
     /**
-     * Checks if a time zone is valid (IANA, CLDR, or Windows)
-     *
-     * @param string $timeZone
-     * @return bool
-     */
-    protected function isValidTimeZoneId(string $timeZone)
-    {
-        return $this->isValidIanaTimeZoneId($timeZone)
-            || $this->isValidCldrTimeZoneId($timeZone)
-            || $this->isValidWindowsTimeZoneId($timeZone);
-    }
-
-    /**
-     * Checks if a time zone is a valid IANA time zone
-     *
-     * @param string $timeZone
-     * @return bool
-     */
-    protected function isValidIanaTimeZoneId(string $timeZone)
-    {
-        if (in_array($timeZone, $this->validIanaTimeZones)) {
-            return true;
-        }
-
-        $valid = [];
-        $tza = timezone_abbreviations_list();
-
-        foreach ($tza as $zone) {
-            foreach ($zone as $item) {
-                $valid[$item['timezone_id']] = true;
-            }
-        }
-
-        unset($valid['']);
-
-        if (isset($valid[$timeZone]) || in_array($timeZone, timezone_identifiers_list(DateTimeZone::ALL_WITH_BC))) {
-            $this->validIanaTimeZones[] = $timeZone;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if a time zone is a valid CLDR time zone
-     *
-     * @param string $timeZone
-     * @return bool
-     */
-    public function isValidCldrTimeZoneId(string $timeZone)
-    {
-        return array_key_exists(html_entity_decode($timeZone), self::$cldrTimeZonesMap);
-    }
-
-    /**
-     * Checks if a time zone is a recognised Windows (non-CLDR) time zone
-     *
-     * @param string $timeZone
-     * @return bool
-     */
-    public function isValidWindowsTimeZoneId(string $timeZone)
-    {
-        return array_key_exists(html_entity_decode($timeZone), self::$windowsTimeZonesMap);
-    }
-
-    /**
      * Initialises the parser using an array
      * containing each line of iCal content
      *
@@ -300,18 +233,18 @@ class ICal
     {
         $lines = $this->unfold($lines);
 
-        if (stristr($lines[0], 'BEGIN:VCALENDAR') !== false) {
+        if (stripos($lines[0], 'BEGIN:VCALENDAR') !== false) {
             $component = '';
             foreach ($lines as $line) {
                 $line = rtrim($line); // Trim trailing whitespace
-                $line = $this->removeUnprintableChars($line);
+                $line = StringHelper::removeUnprintableChars($line);
 
                 if (empty($line)) {
                     continue;
                 }
 
                 if (!$this->disableCharacterReplacement) {
-                    $line = $this->cleanData($line);
+                    $line = StringHelper::cleanData($line);
                 }
 
                 $add = $this->keyValueFromString($line);
@@ -462,104 +395,6 @@ class ICal
         $string = preg_replace('/' . PHP_EOL . '[ \t]/', '', $string);
 
         return explode(PHP_EOL, $string);
-    }
-
-    /**
-     * Removes unprintable ASCII and UTF-8 characters
-     *
-     * @param string $data
-     * @return string
-     */
-    protected function removeUnprintableChars(string $data): string
-    {
-        return preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $data);
-    }
-
-    /**
-     * Replaces curly quotes and other special characters
-     * with their standard equivalents
-     *
-     * @param string $data
-     * @return string
-     */
-    protected function cleanData(string $data): string
-    {
-        $replacementChars = [
-            "\xe2\x80\x98" => "'",   // ‘
-            "\xe2\x80\x99" => "'",   // ’
-            "\xe2\x80\x9a" => "'",   // ‚
-            "\xe2\x80\x9b" => "'",   // ‛
-            "\xe2\x80\x9c" => '"',   // “
-            "\xe2\x80\x9d" => '"',   // ”
-            "\xe2\x80\x9e" => '"',   // „
-            "\xe2\x80\x9f" => '"',   // ‟
-            "\xe2\x80\x93" => '-',   // –
-            "\xe2\x80\x94" => '--',  // —
-            "\xe2\x80\xa6" => '...', // …
-            "\xc2\xa0" => ' ',
-        ];
-        // Replace UTF-8 characters
-        $cleanedData = strtr($data, $replacementChars);
-
-        // Replace Windows-1252 equivalents
-        $charsToReplace = array_map(function ($code) {
-            return mb_chr($code);
-        }, [133, 145, 146, 147, 148, 150, 151, 194]);
-
-        return static::mb_str_replace($charsToReplace, $replacementChars, $cleanedData);
-    }
-
-    /**
-     * Replace all occurrences of the search string with the replacement string.
-     * Multibyte safe.
-     *
-     * @param string|array $search
-     * @param string|array $replace
-     * @param string|array $subject
-     * @param string|null $encoding
-     * @param int $count
-     * @return array|string
-     */
-    protected static function mb_str_replace(
-        $search,
-        $replace,
-        $subject,
-        string $encoding = null,
-        int &$count = 0
-    ) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        if (is_array($subject)) {
-            // Call `mb_str_replace()` for each subject in the array, recursively
-            foreach ($subject as $key => $value) {
-                $subject[$key] = self::mb_str_replace($search, $replace, $value, $encoding, $count);
-            }
-        } else {
-            // Normalize $search and $replace so they are both arrays of the same length
-            $searches = is_array($search) ? array_values($search) : [$search];
-            $replacements = is_array($replace) ? array_values($replace) : [$replace];
-            $replacements = array_pad($replacements, count($searches), '');
-
-            foreach ($searches as $key => $search) {
-                if (is_null($encoding)) {
-                    $encoding = mb_detect_encoding($search, 'UTF-8', true);
-                }
-
-                $replace = $replacements[$key];
-                $searchLen = mb_strlen($search, $encoding);
-
-                $sb = [];
-                while (($offset = mb_strpos($subject, $search, 0, $encoding)) !== false) {
-                    $sb[] = mb_substr($subject, 0, $offset, $encoding);
-                    $subject = mb_substr($subject, $offset + $searchLen, null, $encoding);
-                    ++$count;
-                }
-
-                $sb[] = $subject;
-                $subject = implode($replace, $sb);
-            }
-        }
-
-        return $subject;
     }
 
     /**
@@ -1009,7 +844,7 @@ class ICal
         if ($date[4] === 'Z') {
             $dateTimeZone = new DateTimeZone(self::TIME_ZONE_UTC);
         } elseif (!empty($date[1])) {
-            $dateTimeZone = $this->timeZoneStringToDateTimeZone($date[1]);
+            $dateTimeZone = TimeZoneHelper::timeZoneStringToDateTimeZone($date[1], $this->defaultTimeZone);
         } else {
             $dateTimeZone = new DateTimeZone($this->defaultTimeZone);
         }
@@ -1025,36 +860,6 @@ class ICal
         }
 
         return DateTime::createFromFormat($dateFormat, $dateBasic, $dateTimeZone);
-    }
-
-    /**
-     * Returns a `DateTimeZone` object based on a string containing a time zone name.
-     * Falls back to the default time zone if string passed not a recognised time zone.
-     *
-     * @param string $timeZoneString
-     * @return DateTimeZone
-     */
-    public function timeZoneStringToDateTimeZone(string $timeZoneString): DateTimeZone
-    {
-        // Some time zones contain characters that are not permitted in param-texts,
-        // but are within quoted texts. We need to remove the quotes as they're not
-        // actually part of the time zone.
-        $timeZoneString = trim($timeZoneString, '"');
-        $timeZoneString = html_entity_decode($timeZoneString);
-
-        if ($this->isValidIanaTimeZoneId($timeZoneString)) {
-            return new DateTimeZone($timeZoneString);
-        }
-
-        if ($this->isValidCldrTimeZoneId($timeZoneString)) {
-            return new DateTimeZone(self::$cldrTimeZonesMap[$timeZoneString]);
-        }
-
-        if ($this->isValidWindowsTimeZoneId($timeZoneString)) {
-            return new DateTimeZone(self::$windowsTimeZonesMap[$timeZoneString]);
-        }
-
-        return new DateTimeZone($this->defaultTimeZone);
     }
 
     /**
@@ -1479,7 +1284,7 @@ class ICal
             if (
                 !$initialDateWasUTC
                 && isset($anEvent['DTSTART_array'][0]['TZID'])
-                && $this->isValidTimeZoneId($anEvent['DTSTART_array'][0]['TZID'])
+                && TimeZoneHelper::isValidTimeZoneId($anEvent['DTSTART_array'][0]['TZID'])
             ) {
                 $dateParamArray['TZID'] = $anEvent['DTSTART_array'][0]['TZID'];
             }
@@ -1548,7 +1353,7 @@ class ICal
 
             foreach (array_keys($subArray) as $key) {
                 if ($key === 'TZID') {
-                    $currentTimeZone = $this->timeZoneStringToDateTimeZone($subArray[$key]);
+                    $currentTimeZone = TimeZoneHelper::timeZoneStringToDateTimeZone($subArray[$key], $this->defaultTimeZone);
                 } elseif (is_numeric($key)) {
                     $icalDate = $subArray[$key];
 
@@ -2038,7 +1843,7 @@ class ICal
         }
 
         // Validate the time zone, falling back to the time zone set in the PHP environment.
-        $timeZone = $this->timeZoneStringToDateTimeZone($timeZone)->getName();
+        $timeZone = TimeZoneHelper::timeZoneStringToDateTimeZone($timeZone, $this->defaultTimeZone)->getName();
 
         if ($ignoreUtc && strtoupper($timeZone) === self::TIME_ZONE_UTC) {
             return null;
